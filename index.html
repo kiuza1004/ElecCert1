@@ -4,8 +4,8 @@
   <meta charset="UTF-8" />
   <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no" />
   <meta name="theme-color" content="#0ea5e9" />
-  <meta name="description" content="VoltPass - 전기기능사 자격시험 문제은행 학습 웹앱" />
-  <title>VoltPass · 전기기능사 문제은행</title>
+  <meta name="description" content="VoltPass - 전기기능사 CBT 필기시험 모의고사 10회분 + 과목별 핵심 정리" />
+  <title>VoltPass · 전기기능사 CBT 필기</title>
 
   <!-- Tailwind CSS CDN -->
   <script src="https://cdn.tailwindcss.com"></script>
@@ -15,973 +15,1177 @@
         extend: {
           colors: {
             brand: {
-              50:  '#f0f9ff',
-              100: '#e0f2fe',
-              200: '#bae6fd',
-              300: '#7dd3fc',
-              400: '#38bdf8',
-              500: '#0ea5e9',
-              600: '#0284c7',
-              700: '#0369a1',
-              800: '#075985',
-              900: '#0c4a6e',
+              50:'#f0f9ff',100:'#e0f2fe',200:'#bae6fd',300:'#7dd3fc',
+              400:'#38bdf8',500:'#0ea5e9',600:'#0284c7',700:'#0369a1',
+              800:'#075985',900:'#0c4a6e',
             }
-          },
-          fontFamily: {
-            sans: ['"Pretendard"', '"Apple SD Gothic Neo"', 'system-ui', 'sans-serif']
           }
         }
       }
     }
   </script>
 
-  <!-- Pretendard Font -->
+  <!-- Pretendard -->
   <link rel="stylesheet" as="style" crossorigin
         href="https://cdn.jsdelivr.net/gh/orioncactus/pretendard@v1.3.9/dist/web/variable/pretendardvariable.min.css" />
 
-  <!-- ============================================================
-       CSS 섹션 (Tailwind 외 커스텀 스타일)
-       ============================================================ -->
+  <!-- =================== CSS =================== -->
   <style>
     html, body { -webkit-tap-highlight-color: transparent; }
     body {
-      font-family: 'Pretendard Variable', 'Pretendard', 'Apple SD Gothic Neo', system-ui, sans-serif;
-      background: linear-gradient(180deg, #f8fafc 0%, #eef2f7 100%);
+      font-family: 'Pretendard Variable','Pretendard','Apple SD Gothic Neo',system-ui,sans-serif;
+      background: linear-gradient(180deg,#f8fafc 0%,#eef2f7 100%);
       min-height: 100vh;
     }
-    .scroll-smooth-y { scroll-behavior: smooth; }
     .fade-in { animation: fadeIn .25s ease-out both; }
-    @keyframes fadeIn {
-      from { opacity: 0; transform: translateY(8px); }
-      to   { opacity: 1; transform: translateY(0); }
-    }
-    /* 라디오 카드 스타일 */
-    .opt-label {
-      transition: all .15s ease;
-      border: 1.5px solid #e2e8f0;
-    }
-    .opt-label:hover { border-color: #38bdf8; background:#f0f9ff; }
-    .opt-input:checked + .opt-label {
-      border-color: #0284c7; background: #e0f2fe; box-shadow: 0 1px 0 #bae6fd inset;
-    }
-    .opt-input:checked + .opt-label .opt-num {
-      background:#0284c7; color:#fff; border-color:#0284c7;
-    }
-    /* 정답/오답 상태 */
-    .opt-correct   { border-color:#16a34a !important; background:#dcfce7 !important; }
-    .opt-wrong     { border-color:#dc2626 !important; background:#fee2e2 !important; }
-    .opt-correct .opt-num { background:#16a34a !important; color:#fff !important; border-color:#16a34a !important; }
-    .opt-wrong   .opt-num { background:#dc2626 !important; color:#fff !important; border-color:#dc2626 !important; }
+    @keyframes fadeIn { from{opacity:0;transform:translateY(8px)} to{opacity:1;transform:translateY(0)} }
 
-    /* 탭 카드 hover */
-    .mode-card { transition: transform .15s ease, box-shadow .15s ease; }
-    .mode-card:hover { transform: translateY(-2px); box-shadow: 0 10px 25px -10px rgba(2,132,199,.35); }
+    /* 보기 라디오 카드 */
+    .opt-label { transition:all .15s ease; border:1.5px solid #e2e8f0; }
+    .opt-label:hover { border-color:#38bdf8; background:#f0f9ff; }
+    .opt-input:checked + .opt-label { border-color:#0284c7; background:#e0f2fe; }
+    .opt-input:checked + .opt-label .opt-num { background:#0284c7; color:#fff; border-color:#0284c7; }
+    .opt-correct { border-color:#16a34a !important; background:#dcfce7 !important; }
+    .opt-wrong   { border-color:#dc2626 !important; background:#fee2e2 !important; }
+    .opt-correct .opt-num { background:#16a34a !important; color:#fff !important; border-color:#16a34a !important; }
+    .opt-wrong .opt-num   { background:#dc2626 !important; color:#fff !important; border-color:#dc2626 !important; }
+
+    /* 카드 hover */
+    .hover-card { transition: transform .15s ease, box-shadow .15s ease; }
+    .hover-card:hover { transform: translateY(-2px); box-shadow: 0 10px 25px -10px rgba(2,132,199,.35); }
 
     /* 진행률 바 */
     .progress-track { background:#e2e8f0; }
-    .progress-bar { background: linear-gradient(90deg, #38bdf8, #0284c7); transition: width .4s ease; }
+    .progress-bar   { background: linear-gradient(90deg,#38bdf8,#0284c7); transition: width .4s ease; }
 
-    /* 스크롤바 (PC) */
-    ::-webkit-scrollbar { width: 8px; height: 8px; }
-    ::-webkit-scrollbar-thumb { background:#cbd5e1; border-radius: 8px; }
+    /* 문항 네비게이션 셀 */
+    .nav-cell {
+      aspect-ratio: 1/1; border-radius:8px; font-weight:700; font-size:.78rem;
+      display:flex; align-items:center; justify-content:center; border:1.5px solid transparent;
+      transition: all .12s ease; user-select:none;
+    }
+    .nav-blank    { background:#f1f5f9; color:#64748b; }
+    .nav-answered { background:#dbeafe; color:#1e40af; }
+    .nav-flagged  { background:#fef3c7; color:#92400e; box-shadow: inset 0 0 0 1.5px #f59e0b; }
+    .nav-current  { outline: 2.5px solid #0284c7; outline-offset: 2px; }
+
+    /* 타이머 */
+    .timer-pill {
+      font-variant-numeric: tabular-nums;
+      background:#0f172a; color:#f1f5f9;
+    }
+    .timer-warn { background:#dc2626 !important; animation: pulse 1.2s infinite; }
+    @keyframes pulse { 0%,100%{opacity:1} 50%{opacity:.6} }
+
+    /* 아코디언 */
+    details > summary { list-style:none; cursor:pointer; }
+    details > summary::-webkit-details-marker { display:none; }
+    details[open] .acc-arrow { transform: rotate(180deg); }
+    .acc-arrow { transition: transform .2s ease; }
+
+    /* 스크롤바 */
+    ::-webkit-scrollbar { width:8px; height:8px; }
+    ::-webkit-scrollbar-thumb { background:#cbd5e1; border-radius:8px; }
     ::-webkit-scrollbar-thumb:hover { background:#94a3b8; }
 
-    /* 시퀀스 회로 SVG 컨테이너 */
-    .diagram-box { background:#0f172a; color:#e2e8f0; border-radius:14px; }
-
-    /* 하단 고정 네비 */
-    .sticky-nav {
-      position: sticky; bottom: 0; left: 0; right: 0;
-      backdrop-filter: blur(8px);
-      background: rgba(255,255,255,.85);
-      border-top: 1px solid #e2e8f0;
+    /* KaTeX 비슷한 인라인 공식 */
+    .formula {
+      font-family: 'Cambria Math','Times New Roman',serif;
+      font-style: italic; background:#f8fafc;
+      padding: 2px 8px; border-radius: 6px; border:1px solid #e2e8f0;
+      display:inline-block; margin: 2px 0;
     }
   </style>
 </head>
 
 <body class="text-slate-800">
 
-  <!-- ============================================================
-       헤더
-       ============================================================ -->
-  <header class="sticky top-0 z-30 bg-white/80 backdrop-blur border-b border-slate-200">
-    <div class="max-w-3xl mx-auto px-4 py-3 flex items-center justify-between">
+  <!-- =================== Header =================== -->
+  <header class="sticky top-0 z-30 bg-white/85 backdrop-blur border-b border-slate-200">
+    <div class="max-w-3xl mx-auto px-4 py-3 flex items-center justify-between gap-2">
       <button id="btn-home" class="flex items-center gap-2 group">
         <div class="w-9 h-9 rounded-xl bg-gradient-to-br from-brand-400 to-brand-600 grid place-items-center shadow-md">
-          <!-- bolt icon -->
           <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="white" class="w-5 h-5">
             <path d="M13 2 4 14h7l-1 8 9-12h-7l1-8z"/>
           </svg>
         </div>
         <div class="text-left">
           <div class="text-base font-bold tracking-tight text-slate-900 group-hover:text-brand-600">VoltPass</div>
-          <div class="text-[11px] text-slate-500 -mt-0.5">전기기능사 문제은행</div>
+          <div class="text-[11px] text-slate-500 -mt-0.5">전기기능사 CBT 필기</div>
         </div>
       </button>
       <div class="flex items-center gap-2">
-        <button id="btn-wrong-note" class="px-3 py-1.5 text-xs sm:text-sm rounded-lg bg-amber-100 text-amber-800 hover:bg-amber-200 font-semibold">
+        <button id="btn-notes" class="px-3 py-1.5 text-xs sm:text-sm rounded-lg bg-emerald-100 text-emerald-800 hover:bg-emerald-200 font-semibold">
+          핵심정리
+        </button>
+        <button id="btn-wrong" class="px-3 py-1.5 text-xs sm:text-sm rounded-lg bg-amber-100 text-amber-800 hover:bg-amber-200 font-semibold">
           오답노트 <span id="wrong-count" class="ml-1 px-1.5 py-0.5 rounded bg-amber-500 text-white text-[10px]">0</span>
         </button>
-        <button id="btn-reset" class="px-3 py-1.5 text-xs sm:text-sm rounded-lg bg-slate-100 text-slate-600 hover:bg-slate-200 font-semibold">
+        <button id="btn-reset" class="px-2.5 py-1.5 text-xs sm:text-sm rounded-lg bg-slate-100 text-slate-600 hover:bg-slate-200 font-semibold">
           초기화
         </button>
       </div>
     </div>
   </header>
 
-  <!-- ============================================================
-       메인 컨테이너 (뷰 스위칭)
-       ============================================================ -->
   <main id="app" class="max-w-3xl mx-auto px-4 pt-5 pb-24"></main>
 
-  <!-- 하단 안내 -->
   <footer class="max-w-3xl mx-auto px-4 pb-6 text-center text-xs text-slate-400">
-    © VoltPass · 학습용 문제은행 (실제 시험 문제와 다를 수 있습니다)
+    © VoltPass · 학습용 (실제 시험 문제와 다를 수 있습니다) · CBT 시뮬레이션
   </footer>
 
-  <!-- ============================================================
-       JavaScript 섹션
-       ============================================================ -->
+  <!-- =================== JavaScript =================== -->
   <script>
   /* ============================================================
-   *  [1] 문제 데이터 (Mock Data)
+   *  [1] 마스터 문제은행 (Question Pool)
    *      포맷: { id, subject, question, options[4], answer(1~4), explanation }
-   *      subject : 1=전기이론, 2=전기기기, 3=전기설비, 4=실기(작업형)
-   *      type    : (실기 전용) 'mcq' | 'ox'
-   *      // 이후 100개까지 확장 가능한 JSON 구조
+   *      subject : 1=전기이론, 2=전기기기, 3=전기설비
+   *      과목별 25문항 → 10회차 모의고사 시드 셔플로 회차별 60문항 생성
+   *      // 이후 100문항/과목까지 확장 가능한 JSON 구조
    * ============================================================ */
   const QUESTIONS = [
-    /* ---------- 1과목 : 전기이론 ---------- */
-    { id: 101, subject: 1,
-      question: "옴(Ω)의 법칙에서 전류 I와 전압 V, 저항 R의 관계로 옳은 것은?",
-      options: ["I = V × R", "I = V / R", "I = R / V", "I = V + R"],
-      answer: 2,
-      explanation: "옴의 법칙: V = IR → I = V/R. 동일한 전압에서 저항이 클수록 전류는 작아진다."
-    },
-    { id: 102, subject: 1,
-      question: "어떤 도체에 10[A]의 전류가 5초 동안 흘렀을 때 이동한 전기량[C]은?",
-      options: ["2", "15", "50", "100"],
-      answer: 3,
-      explanation: "Q = I × t = 10 × 5 = 50[C]. 전기량 = 전류 × 시간."
-    },
-    { id: 103, subject: 1,
-      question: "저항 R₁ = 4[Ω], R₂ = 6[Ω]을 직렬 연결할 때 합성저항은?",
-      options: ["2.4[Ω]", "5[Ω]", "10[Ω]", "24[Ω]"],
-      answer: 3,
-      explanation: "직렬 합성저항 R = R₁ + R₂ = 4 + 6 = 10[Ω]."
-    },
-    { id: 104, subject: 1,
-      question: "정전용량 C[F], 전압 V[V]인 콘덴서에 축적되는 정전에너지[J]는?",
-      options: ["CV", "C/V", "½CV²", "CV²"],
-      answer: 3,
-      explanation: "콘덴서에 저장되는 에너지 W = ½CV². 전압의 제곱에 비례한다."
-    },
-    { id: 105, subject: 1,
-      question: "RLC 직렬 회로에서 공진 시 전류와 전압의 관계로 옳은 것은?",
-      options: ["전류 최소, 임피던스 최대", "전류 최대, 임피던스 최소", "전류·전압 모두 최소", "위상차 90°"],
-      answer: 2,
-      explanation: "직렬 공진 시 XL = XC가 되어 임피던스가 R로 최소가 되며 전류는 최대가 된다."
-    },
-    // 이후 100개까지 확장 가능한 JSON 구조
+    /* =================== 1과목 · 전기이론 (25) =================== */
+    { id:1101, subject:1, question:"옴의 법칙으로 전류 I를 옳게 나타낸 것은?",
+      options:["I = V × R","I = V / R","I = R / V","I = V + R"], answer:2,
+      explanation:"V = IR → I = V/R. 동일 전압에서 저항이 클수록 전류는 작아진다." },
+    { id:1102, subject:1, question:"10[A]의 전류가 5초 동안 흐를 때 이동한 전기량[C]은?",
+      options:["2","15","50","100"], answer:3,
+      explanation:"Q = I × t = 10 × 5 = 50[C]." },
+    { id:1103, subject:1, question:"R₁=4[Ω], R₂=6[Ω]을 직렬연결할 때 합성저항[Ω]은?",
+      options:["2.4","5","10","24"], answer:3,
+      explanation:"직렬 합성저항 R = R₁+R₂ = 4+6 = 10[Ω]." },
+    { id:1104, subject:1, question:"R₁=6[Ω], R₂=3[Ω]을 병렬연결할 때 합성저항[Ω]은?",
+      options:["1","2","4.5","9"], answer:2,
+      explanation:"병렬: R = (R₁·R₂)/(R₁+R₂) = 18/9 = 2[Ω]." },
+    { id:1105, subject:1, question:"콘덴서에 축적되는 정전에너지 W는?",
+      options:["CV","½CV²","CV²","C/V"], answer:2,
+      explanation:"W = ½CV² [J]. 전압의 제곱에 비례한다." },
+    { id:1106, subject:1, question:"3[μF]와 6[μF]의 콘덴서를 직렬연결할 때 합성용량[μF]은?",
+      options:["1","2","4.5","9"], answer:2,
+      explanation:"직렬: 1/C = 1/3 + 1/6 = 1/2 → C = 2[μF]." },
+    { id:1107, subject:1, question:"3[μF]와 6[μF]의 콘덴서를 병렬연결할 때 합성용량[μF]은?",
+      options:["2","4.5","9","18"], answer:3,
+      explanation:"병렬: C = C₁+C₂ = 3+6 = 9[μF]." },
+    { id:1108, subject:1, question:"RLC 직렬회로의 공진 조건과 그때의 임피던스는?",
+      options:["XL>XC, Z=R+XL","XL=XC, Z=R","XL<XC, Z=R-XC","XL=XC, Z=0"], answer:2,
+      explanation:"공진 시 XL = XC가 되어 리액턴스가 상쇄, 임피던스는 R만 남는다 → 전류 최대." },
+    { id:1109, subject:1, question:"키르히호프의 전류법칙(KCL)의 내용은?",
+      options:["폐회로 전압의 합은 0","임의 절점에 유입·유출되는 전류의 합은 0",
+              "전압강하는 전류와 저항의 곱","에너지보존법칙"], answer:2,
+      explanation:"KCL: 어떤 절점에 들어가는 전류의 합과 나가는 전류의 합이 같다." },
+    { id:1110, subject:1, question:"100[V], 5[A]의 부하에서 소비되는 전력[W]은?",
+      options:["20","100","500","2500"], answer:3,
+      explanation:"P = VI = 100 × 5 = 500[W]." },
+    { id:1111, subject:1, question:"줄의 법칙에서 발생열량 H[J]를 나타내는 식은?",
+      options:["H = VIt","H = I²Rt","H = V²t","H = IRt"], answer:2,
+      explanation:"H = I²Rt [J]. 전류제곱과 저항, 시간의 곱." },
+    { id:1112, subject:1, question:"자속밀도 B의 SI 단위는?",
+      options:["[Wb]","[T] (Tesla)","[A/m]","[H]"], answer:2,
+      explanation:"B = Φ/A [Wb/m² = T]. 테슬라가 SI 단위." },
+    { id:1113, subject:1, question:"패러데이의 전자유도법칙의 식은?",
+      options:["e = -N·dΦ/dt","e = N·Φ","e = R·I","e = L·I"], answer:1,
+      explanation:"e = -N·dΦ/dt. 코일을 지나는 자속의 시간변화율에 비례." },
+    { id:1114, subject:1, question:"렌츠의 법칙이 의미하는 것은?",
+      options:["유도전류는 자속변화를 돕는 방향","유도전류는 자속변화를 방해하는 방향",
+              "전류는 항상 전압과 동상","자속은 시간에 비례"], answer:2,
+      explanation:"렌츠: 유도전류는 그 원인이 되는 자속의 변화를 방해하는 방향으로 흐른다." },
+    { id:1115, subject:1, question:"정현파 교류의 실효값 V는 최대값 Vm과 어떤 관계인가?",
+      options:["V = Vm","V = Vm/√2","V = √2·Vm","V = 2Vm/π"], answer:2,
+      explanation:"실효값 V = Vm/√2 ≒ 0.707Vm." },
+    { id:1116, subject:1, question:"정현파의 평균값(반파)은 최대값 Vm의 몇 배인가?",
+      options:["1/√2","2/π","π/2","√2"], answer:2,
+      explanation:"평균값 Vavg = 2Vm/π ≒ 0.637Vm (반파 기준)." },
+    { id:1117, subject:1, question:"RL 직렬회로에서 임피던스 Z의 크기는?",
+      options:["R+L","√(R²+XL²)","R-XL","R²+XL²"], answer:2,
+      explanation:"Z = √(R²+XL²). 직각삼각형 관계." },
+    { id:1118, subject:1, question:"역률 cosθ에 대한 설명으로 옳은 것은?",
+      options:["피상전력/유효전력","유효전력/피상전력","무효전력/유효전력","피상전력/무효전력"], answer:2,
+      explanation:"역률 = 유효전력(P) / 피상전력(S) = cosθ." },
+    { id:1119, subject:1, question:"3상 Y결선에서 선간전압 VL과 상전압 Vp의 관계는?",
+      options:["VL = Vp","VL = √3·Vp","VL = 3Vp","VL = Vp/√3"], answer:2,
+      explanation:"Y결선: 선간전압 = √3 × 상전압, 선전류 = 상전류." },
+    { id:1120, subject:1, question:"3상 Δ결선에서 선전류 IL과 상전류 Ip의 관계는?",
+      options:["IL = Ip","IL = √3·Ip","IL = Ip/√3","IL = 3Ip"], answer:2,
+      explanation:"Δ결선: 선전류 = √3 × 상전류, 선간전압 = 상전압." },
+    { id:1121, subject:1, question:"도체의 저항 R = ρℓ/A 에서 A는 무엇인가?",
+      options:["길이","고유저항","단면적","온도"], answer:3,
+      explanation:"ρ:고유저항, ℓ:길이, A:단면적. 길이에 비례, 단면적에 반비례." },
+    { id:1122, subject:1, question:"인덕턴스 L의 SI 단위는?",
+      options:["[F] 패럿","[H] 헨리","[Ω] 옴","[Wb] 웨버"], answer:2,
+      explanation:"인덕턴스 단위는 헨리[H]. 1H = 1V·s/A." },
+    { id:1123, subject:1, question:"두 도체에 같은 방향의 전류가 흐를 때 작용하는 힘은?",
+      options:["서로 잡아당기는 힘","서로 반발하는 힘","힘이 작용하지 않음","주기적으로 바뀜"], answer:1,
+      explanation:"같은 방향 전류 → 흡인력, 반대 방향 → 반발력 (앙페르의 힘)." },
+    { id:1124, subject:1, question:"전기력선의 성질로 옳지 않은 것은?",
+      options:["+에서 -로 향한다","서로 교차한다","도체 표면에 수직","자체적으로 폐곡선이 아니다"], answer:2,
+      explanation:"전기력선은 절대 서로 교차하지 않는다." },
+    { id:1125, subject:1, question:"단상 교류 전력 P[W]를 구하는 식은?",
+      options:["P = VI","P = VI·cosθ","P = √3·VI·cosθ","P = VI·sinθ"], answer:2,
+      explanation:"단상: P = VI·cosθ. 3상: P = √3·VL·IL·cosθ." },
 
-    /* ---------- 2과목 : 전기기기 ---------- */
-    { id: 201, subject: 2,
-      question: "직류 발전기의 유기기전력 E에 대한 설명으로 옳은 것은?",
-      options: ["자속에 반비례", "회전수에 반비례", "자속과 회전수에 비례", "권수에 반비례"],
-      answer: 3,
-      explanation: "직류기 유기기전력 E = (pZ/60a)·φ·N → 자속 φ와 회전수 N에 비례한다."
-    },
-    { id: 202, subject: 2,
-      question: "변압기의 권수비 a = N₁/N₂ = 10, 1차 전압이 2200[V]일 때 2차 전압은?",
-      options: ["22[V]", "220[V]", "2200[V]", "22000[V]"],
-      answer: 2,
-      explanation: "V₂ = V₁ / a = 2200 / 10 = 220[V]."
-    },
-    { id: 203, subject: 2,
-      question: "3상 유도전동기의 회전방향을 바꾸는 가장 일반적인 방법은?",
-      options: ["전원전압을 낮춘다", "주파수를 변경한다", "3선 중 임의의 2선을 바꾼다", "중성선을 끊는다"],
-      answer: 3,
-      explanation: "3상 전동기의 회전방향은 3상 중 임의의 2상의 결선을 바꾸면 역회전한다."
-    },
-    { id: 204, subject: 2,
-      question: "동기속도 Ns가 1800[rpm]이고 회전자 속도 N이 1764[rpm]일 때 슬립[%]은?",
-      options: ["1[%]", "2[%]", "5[%]", "10[%]"],
-      answer: 2,
-      explanation: "슬립 s = (Ns - N) / Ns × 100 = (1800-1764)/1800 × 100 = 2[%]."
-    },
-    { id: 205, subject: 2,
-      question: "변압기 절연유의 구비 조건으로 옳지 않은 것은?",
-      options: ["절연내력이 클 것", "인화점이 낮을 것", "냉각효과가 클 것", "화학적으로 안정할 것"],
-      answer: 2,
-      explanation: "절연유는 인화점이 '높아야' 화재 위험이 적다. 낮으면 안 된다."
-    },
-    // 이후 100개까지 확장 가능한 JSON 구조
+    /* =================== 2과목 · 전기기기 (25) =================== */
+    { id:2101, subject:2, question:"직류 발전기의 유기기전력 E에 대한 설명으로 옳은 것은?",
+      options:["자속에 반비례","회전수에 반비례","자속·회전수에 비례","권수에 반비례"], answer:3,
+      explanation:"E = (pZ/60a)·φ·N → 자속 φ와 회전수 N에 비례." },
+    { id:2102, subject:2, question:"변압기 권수비 a = N₁/N₂ = 10, 1차전압이 2200[V]이면 2차전압[V]은?",
+      options:["22","220","2200","22000"], answer:2,
+      explanation:"V₂ = V₁/a = 2200/10 = 220[V]." },
+    { id:2103, subject:2, question:"3상 유도전동기의 회전방향을 바꾸는 가장 일반적인 방법은?",
+      options:["전압을 낮춘다","주파수를 변경","임의의 2선을 바꾼다","중성선을 끊는다"], answer:3,
+      explanation:"3상 중 임의의 두 상의 결선을 바꾸면 상순이 바뀌어 역회전한다." },
+    { id:2104, subject:2, question:"동기속도 Ns = 1800[rpm], 회전자속도 N = 1764[rpm]일 때 슬립[%]은?",
+      options:["1","2","5","10"], answer:2,
+      explanation:"s = (Ns-N)/Ns × 100 = (1800-1764)/1800 × 100 = 2[%]." },
+    { id:2105, subject:2, question:"변압기 절연유의 구비조건으로 옳지 않은 것은?",
+      options:["절연내력이 클 것","인화점이 낮을 것","냉각효과가 클 것","화학적으로 안정"], answer:2,
+      explanation:"절연유는 인화점이 '높아야' 화재 위험이 적다." },
+    { id:2106, subject:2, question:"동기속도 Ns[rpm]를 구하는 식은? (f:주파수, P:극수)",
+      options:["Ns = 60f/P","Ns = 120f/P","Ns = f/P","Ns = 120P/f"], answer:2,
+      explanation:"동기속도 Ns = 120f/P [rpm]." },
+    { id:2107, subject:2, question:"직류 분권전동기의 속도 제어방법이 아닌 것은?",
+      options:["계자제어","저항제어","전압제어","주파수제어"], answer:4,
+      explanation:"주파수제어는 교류기(인버터)에 해당. 직류기는 계자/저항/전압제어." },
+    { id:2108, subject:2, question:"변압기의 무부하 시험으로 알 수 있는 손실은?",
+      options:["동손","철손","표류부하손","기계손"], answer:2,
+      explanation:"무부하시험 → 철손(히스테리시스+와류). 단락시험 → 동손." },
+    { id:2109, subject:2, question:"농형 유도전동기의 기동법으로 부적합한 것은?",
+      options:["전전압 기동","Y-Δ 기동","리액터 기동","2차 저항 기동"], answer:4,
+      explanation:"2차 저항 기동은 권선형 유도전동기에 사용. 농형은 회전자에 슬립링이 없다." },
+    { id:2110, subject:2, question:"동기발전기 병렬운전의 필수 조건이 아닌 것은?",
+      options:["기전력의 크기가 같을 것","기전력의 주파수가 같을 것",
+              "기전력의 위상이 같을 것","용량이 같을 것"], answer:4,
+      explanation:"용량은 달라도 가능. 필수 조건: 크기·주파수·위상·파형·상회전이 같아야 한다." },
+    { id:2111, subject:2, question:"변압기 효율이 최대가 되는 조건은?",
+      options:["철손 = 동손","철손 = 2×동손","동손 = 2×철손","철손 = 0"], answer:1,
+      explanation:"η_max 조건: 무부하손(철손) = 부하손(동손)." },
+    { id:2112, subject:2, question:"SCR(사이리스터)에 대한 설명으로 옳은 것은?",
+      options:["양방향 도통 소자","단방향 3단자 정류소자",
+              "전압에 의해 ON 되는 양방향 소자","무접점 저항기"], answer:2,
+      explanation:"SCR은 단방향 3단자(Gate, Anode, Cathode) 정류소자. 게이트 트리거로 ON." },
+    { id:2113, subject:2, question:"단상 반파 정류회로의 직류 평균전압 Edc는? (V는 교류 실효값)",
+      options:["Edc = 0.45V","Edc = 0.9V","Edc = 1.35V","Edc = 1.0V"], answer:1,
+      explanation:"단상 반파: Edc = (√2·V)/π ≒ 0.45V. 전파: 0.9V." },
+    { id:2114, subject:2, question:"3상 유도전동기의 회전자계 회전속도는?",
+      options:["슬립속도","동기속도","회전자속도","0"], answer:2,
+      explanation:"3상 평형 전류 → 동기속도 Ns로 회전하는 회전자계가 발생." },
+    { id:2115, subject:2, question:"변압기 V결선의 출력은 Δ결선의 약 몇 [%]인가?",
+      options:["57.7","66.7","86.6","100"], answer:1,
+      explanation:"V결선 이용률 86.6%, 출력비 = 1/√3 ≒ 57.7% (Δ결선 대비)." },
+    { id:2116, subject:2, question:"직류 직권전동기의 특징으로 옳은 것은?",
+      options:["속도변동률 작다","기동토크 매우 큼","무여자 운전 가능","속도 일정"], answer:2,
+      explanation:"직권전동기: 기동토크 매우 크고 무부하 시 위험속도(폭주). 전동차에 사용." },
+    { id:2117, subject:2, question:"인버터(Inverter)의 역할은?",
+      options:["AC → DC","DC → AC","AC → AC 주파수 변환","DC → DC"], answer:2,
+      explanation:"인버터: DC를 AC로 변환. AC→DC는 컨버터(정류기)." },
+    { id:2118, subject:2, question:"변압기 %임피던스가 4[%]일 때 단락전류는 정격전류의 몇 배인가?",
+      options:["4배","10배","25배","100배"], answer:3,
+      explanation:"Is/In = 100/%Z = 100/4 = 25배." },
+    { id:2119, subject:2, question:"동기전동기의 V곡선이 나타내는 것은?",
+      options:["전압-주파수","계자전류-전기자전류","속도-토크","부하-효율"], answer:2,
+      explanation:"V곡선: 횡축 계자전류, 종축 전기자전류. 역률 조정 가능." },
+    { id:2120, subject:2, question:"3상 변압기 Y-Δ 결선의 1·2차 위상차는?",
+      options:["0°","30°","60°","90°"], answer:2,
+      explanation:"Y-Δ 결선은 1차와 2차 전압의 위상차가 30° 발생." },
+    { id:2121, subject:2, question:"권선형 유도전동기의 비례추이를 이용하는 목적은?",
+      options:["효율 향상","역률 개선","속도 일정","기동토크 증대 / 속도제어"], answer:4,
+      explanation:"2차 저항을 가감하여 슬립 변동 → 기동토크 증대 및 속도제어 가능." },
+    { id:2122, subject:2, question:"직류전동기 토크 T의 관계식은? (φ:자속, Ia:전기자전류)",
+      options:["T ∝ φ·Ia","T ∝ 1/Ia","T ∝ V","T ∝ N"], answer:1,
+      explanation:"T = K·φ·Ia. 자속과 전기자전류의 곱에 비례." },
+    { id:2123, subject:2, question:"변압기 절연계급 중 H종의 최고 허용온도는?",
+      options:["105℃","130℃","155℃","180℃"], answer:4,
+      explanation:"Y90, A105, E120, B130, F155, H180, C180초과." },
+    { id:2124, subject:2, question:"농형과 권선형 유도전동기의 가장 큰 차이점은?",
+      options:["고정자 구조","회전자 구조","베어링 종류","외형"], answer:2,
+      explanation:"농형은 회전자 도체가 단락된 농형 구조, 권선형은 코일 권선+슬립링." },
+    { id:2125, subject:2, question:"동기전동기의 기동방법으로 옳은 것은?",
+      options:["전전압 기동","자기기동(제동권선 이용)","Y-Δ 기동","리액터 기동"], answer:2,
+      explanation:"동기전동기는 자체 기동토크가 없어 제동권선을 이용한 자기기동 또는 기동전동기 사용." },
 
-    /* ---------- 3과목 : 전기설비 ---------- */
-    { id: 301, subject: 3,
-      question: "저압 옥내 배선 공사에서 일반적으로 사용되는 전선의 최소 굵기[mm²]는?",
-      options: ["1.5", "2.5", "4.0", "6.0"],
-      answer: 2,
-      explanation: "KEC 규정상 저압 옥내배선의 일반 사용 최소 굵기는 단면적 2.5[mm²] (연동선 기준)이다."
-    },
-    { id: 302, subject: 3,
-      question: "접지공사 중 변압기 중성점 접지로 사용되는 것은?",
-      options: ["계통접지", "보호접지", "피뢰접지", "기능접지"],
-      answer: 1,
-      explanation: "계통접지는 전력계통의 중성점을 접지하여 이상전압 억제·보호계전기 동작을 목적으로 한다."
-    },
-    { id: 303, subject: 3,
-      question: "주택 분전반의 누전차단기 정격 감도전류로 가장 적합한 것은?",
-      options: ["10[mA]", "30[mA]", "100[mA]", "300[mA]"],
-      answer: 2,
-      explanation: "인체보호용 누전차단기는 일반적으로 30[mA] 이하, 동작시간 0.03초 이내가 표준이다."
-    },
-    { id: 304, subject: 3,
-      question: "배선용 차단기(MCCB) 명판에 표시되는 'AT'의 의미는?",
-      options: ["프레임 전류", "정격 전류 (Ampere Trip)", "정격 전압", "차단 용량"],
-      answer: 2,
-      explanation: "AT(Ampere Trip)는 동작 정격전류, AF(Ampere Frame)은 프레임 용량을 의미한다."
-    },
-    { id: 305, subject: 3,
-      question: "금속관 공사에서 관 상호 및 박스와의 접속은 어떻게 해야 하는가?",
-      options: ["전기적으로 단절", "기계적·전기적으로 완전 접속", "절연테이프로만 감기", "콘크리트로 매입"],
-      answer: 2,
-      explanation: "금속관 공사는 누전·접지 신뢰성 확보를 위해 기계적·전기적으로 완전하게 접속해야 한다."
-    },
-    // 이후 100개까지 확장 가능한 JSON 구조
-
-    /* ---------- 4과목 : 실기 작업형 (시퀀스 제어) ---------- */
-    { id: 401, subject: 4, type: 'mcq',
-      category: '회로도 해석',
-      question: "시퀀스 도면 기호 'MC'가 의미하는 것은?",
-      options: ["전자접촉기(Magnetic Contactor)", "수동스위치", "퓨즈", "콘덴서"],
-      answer: 1,
-      explanation: "MC는 Magnetic Contactor(전자접촉기). 코일이 여자되면 주접점이 닫혀 부하에 전원을 공급한다."
-    },
-    { id: 402, subject: 4, type: 'mcq',
-      category: '핀번호 부여',
-      question: "8핀 릴레이(MY2N)에서 코일 단자의 핀 번호는?",
-      options: ["1, 2", "3, 4", "7, 8", "13, 14"],
-      answer: 3,
-      explanation: "8핀 MY2N 릴레이의 코일 단자는 7번-8번. 1-3-5-7 / 4-2-6-8 형태로 접점이 배치된다."
-    },
-    { id: 403, subject: 4, type: 'ox',
-      category: '결선 주의사항',
-      question: "[O/X] 3상 전동기의 회전방향을 바꾸려면 R-S-T 중 임의의 2상의 결선을 바꿔주면 된다.",
-      options: ["O (옳다)", "X (틀리다)"],
-      answer: 1,
-      explanation: "O. 3상 중 임의의 2상의 결선을 교환하면 상순이 바뀌어 역회전한다. 1상만 바꾸면 결상이 된다."
-    },
-    { id: 404, subject: 4, type: 'ox',
-      category: '실격 사유',
-      question: "[O/X] 작업형 시험에서 전선의 피복을 과도하게 벗겨 동선이 단자 밖으로 5mm 이상 노출되어도 무방하다.",
-      options: ["O (옳다)", "X (틀리다)"],
-      answer: 2,
-      explanation: "X. 충전부 노출은 감전·단락 위험으로 실격 사유. 단자 밖 동선 노출은 일반적으로 2mm 이내여야 한다."
-    },
-    { id: 405, subject: 4, type: 'mcq',
-      category: '회로도 해석',
-      question: "자기유지(Self-holding) 회로의 핵심 동작 원리로 옳은 것은?",
-      options: [
-        "코일의 a접점을 푸시버튼과 직렬 연결",
-        "코일의 a접점을 푸시버튼과 병렬 연결하여 코일 여자 상태 유지",
-        "타이머 b접점을 사용",
-        "퓨즈로 회로 차단"
-      ],
-      answer: 2,
-      explanation: "기동 푸시버튼과 자기 코일의 a접점을 '병렬'로 연결하면 푸시버튼을 떼도 코일이 여자된 상태가 유지된다."
-    },
-    { id: 406, subject: 4, type: 'mcq',
-      category: '실격 사유',
-      question: "다음 중 전기기능사 실기시험에서 즉시 실격되는 사항으로 옳은 것은?",
-      options: [
-        "회로 일부 미완성",
-        "전선 색상 한 곳 오류",
-        "정격에 맞지 않는 차단기 임의 교체 후 시험 진행",
-        "단자 조임 토크 부족"
-      ],
-      answer: 3,
-      explanation: "지정된 정격 부품을 임의 교체하거나, 시험 중 전원 투입 시 단락·감전이 발생하면 실격 처리된다."
-    },
-    { id: 407, subject: 4, type: 'mcq',
-      category: '부품 배치도',
-      question: "제어판 배치 시 일반적으로 가장 상단에 위치시키는 부품은?",
-      options: ["전자접촉기(MC)", "차단기(MCCB)", "단자대(TB)", "릴레이(R)"],
-      answer: 2,
-      explanation: "전원 인입측인 차단기(MCCB)를 상단에 배치하고, 그 아래 MC, 릴레이, 단자대 순으로 배치하는 것이 표준."
-    }
-    // 이후 100개까지 확장 가능한 JSON 구조
+    /* =================== 3과목 · 전기설비 (25) =================== */
+    { id:3101, subject:3, question:"저압 옥내 배선의 일반적인 최소 굵기[mm²]는? (연동선 기준)",
+      options:["1.5","2.5","4.0","6.0"], answer:2,
+      explanation:"KEC 규정: 저압 옥내배선 일반 최소 굵기 2.5[mm²] (연동선)." },
+    { id:3102, subject:3, question:"전력계통의 중성점을 접지하는 접지의 종류는?",
+      options:["계통접지","보호접지","피뢰접지","기능접지"], answer:1,
+      explanation:"계통접지: 변압기 중성점 접지. 이상전압 억제·보호계전기 동작." },
+    { id:3103, subject:3, question:"인체보호용 누전차단기의 정격 감도전류와 동작시간은?",
+      options:["10mA, 0.1초","30mA, 0.03초","100mA, 0.1초","300mA, 0.3초"], answer:2,
+      explanation:"인체보호용: 30[mA] 이하, 0.03초 이내. 화재예방용은 200~300mA, 0.1초." },
+    { id:3104, subject:3, question:"배선용 차단기 명판의 'AT'는 무엇을 의미하는가?",
+      options:["프레임 전류","정격 동작 전류(Ampere Trip)","정격 전압","차단 용량"], answer:2,
+      explanation:"AT: Ampere Trip(동작 정격전류), AF: Ampere Frame(프레임 용량)." },
+    { id:3105, subject:3, question:"금속관 공사에서 관 상호 및 박스와의 접속은?",
+      options:["전기적으로 단절","기계적·전기적으로 완전 접속",
+              "절연테이프만 사용","콘크리트에 매입"], answer:2,
+      explanation:"누전·접지 신뢰성 확보를 위해 기계적·전기적으로 완전 접속해야 한다." },
+    { id:3106, subject:3, question:"KEC 기준 3상 전선의 색상(R, S, T)으로 옳은 것은?",
+      options:["적·백·청","갈·흑·회","흑·적·청","황·녹·청"], answer:2,
+      explanation:"KEC: L1(갈색), L2(흑색), L3(회색), N(청색), 보호도체(녹황 줄무늬)." },
+    { id:3107, subject:3, question:"합성수지관 공사에서 관 상호 접속 시 삽입 깊이는 관 바깥지름의 몇 배 이상인가?",
+      options:["0.5배","0.8배","1.2배","1.5배"], answer:3,
+      explanation:"접착제 사용 시 0.8배 이상, 미사용 시 1.2배 이상." },
+    { id:3108, subject:3, question:"가요전선관 공사에 사용되지 않는 것은?",
+      options:["1종 금속제 가요전선관","2종 금속제 가요전선관",
+              "합성수지제 가요전선관","애자사용 공사"], answer:4,
+      explanation:"애자사용 공사는 별개 공법. 가요전선관은 진동·이동 부위에 사용." },
+    { id:3109, subject:3, question:"분전반과 분전반 사이에 시설하는 전선의 굵기는?",
+      options:["부하 전류 이상","주변 분기 회로 합계 전류 이상",
+              "차단기 정격의 1.25배","변압기 정격 이상"], answer:2,
+      explanation:"간선의 굵기는 그 간선에 접속되는 분기회로 부하전류 합계 이상이어야 한다." },
+    { id:3110, subject:3, question:"접지저항계로 접지저항을 측정할 때 사용하는 보조전극은?",
+      options:["1개","2개","3개","필요없음"], answer:2,
+      explanation:"3전극법: 접지극(E)+전류보조극(C)+전위보조극(P) → 보조전극은 2개." },
+    { id:3111, subject:3, question:"사용전압 300[V] 이하 저압 옥내배선의 절연저항 최저값은?",
+      options:["0.1[MΩ]","0.2[MΩ]","0.4[MΩ]","1.0[MΩ]"], answer:2,
+      explanation:"KEC: SELV/PELV 0.5MΩ, FELV·500V이하 1.0MΩ. (구 기준 150V이하 0.1, 300V이하 0.2, 400V초과 0.4)" },
+    { id:3112, subject:3, question:"차단기(CB)와 단로기(DS)의 차이로 옳은 것은?",
+      options:["DS는 부하전류 차단 가능","CB는 부하전류·고장전류 차단 가능",
+              "DS는 자동조작 전용","둘 다 동일 기능"], answer:2,
+      explanation:"CB: 부하·고장전류 차단. DS: 무전류 상태 회로 개폐(보수용)." },
+    { id:3113, subject:3, question:"전류차단의 목적이 아닌 것을 사용하는 보호장치는?",
+      options:["퓨즈","MCCB","변류기(CT)","ELB"], answer:3,
+      explanation:"CT(변류기)는 큰 전류를 작은 값으로 변환하여 계측·보호에 사용. 차단기가 아니다." },
+    { id:3114, subject:3, question:"피뢰기(LA)의 설치 목적은?",
+      options:["과전류 차단","이상전압(서지) 대지로 방류","역률 개선","고조파 제거"], answer:2,
+      explanation:"낙뢰·개폐 등 이상전압을 대지로 방류하여 기기를 보호." },
+    { id:3115, subject:3, question:"케이블 트레이 공사에 사용할 수 없는 전선은?",
+      options:["연피케이블","알루미늄피케이블","CV케이블","비닐절연 단심 비닐외장 케이블"], answer:4,
+      explanation:"케이블 트레이는 다심 또는 외장이 있는 케이블 사용. 단심 비닐외장은 부적합." },
+    { id:3116, subject:3, question:"옥내배선용으로 가장 일반적인 전선은?",
+      options:["OW","DV","IV","CV"], answer:3,
+      explanation:"IV(450/750V 비닐절연전선): 옥내배선용 표준. OW/DV는 옥외용." },
+    { id:3117, subject:3, question:"콘센트의 일반적인 설치 높이(바닥에서)는?",
+      options:["10~20cm","30~50cm","100~120cm","150~180cm"], answer:2,
+      explanation:"일반 콘센트 설치 높이는 약 30cm. 침대·세면대 옆은 추가 고려." },
+    { id:3118, subject:3, question:"한국전기설비규정(KEC)에서 저압의 기준은?",
+      options:["DC 1.5kV 이하, AC 1kV 이하","DC 750V 이하, AC 600V 이하",
+              "DC 750V 이하, AC 1.5kV 이하","DC 1kV 이하, AC 750V 이하"], answer:1,
+      explanation:"KEC 저압: DC 1.5kV 이하, AC 1kV 이하. 그 이상~7kV: 고압, 7kV 초과: 특고압." },
+    { id:3119, subject:3, question:"전선의 식별 중 보호도체(PE)의 색상은?",
+      options:["청색","녹색-노란색 줄무늬","갈색","회색"], answer:2,
+      explanation:"보호도체(PE): 녹황 줄무늬. 중성선(N): 청색." },
+    { id:3120, subject:3, question:"옥외 인입선과 옥내 배선의 접속점에 시설하는 것은?",
+      options:["단로기","개폐기 및 과전류차단기","피뢰기","CT"], answer:2,
+      explanation:"인입구에는 옥내배선을 보호하기 위해 개폐기 및 과전류차단기를 시설." },
+    { id:3121, subject:3, question:"형광등의 안정기(stabilizer)의 역할은?",
+      options:["역률 개선","기동전압 공급 및 전류제한","주파수 변환","빛의 색온도 조절"], answer:2,
+      explanation:"안정기: 방전관에 필요한 고전압 기동·점등 후 전류를 제한." },
+    { id:3122, subject:3, question:"저압 옥내배선의 사용전선 굵기(연동선) 계산에서 고려요소가 아닌 것은?",
+      options:["허용전류","전압강하","기계적 강도","주위 색상"], answer:4,
+      explanation:"굵기 결정: 허용전류·전압강하·기계적 강도·고장전류 등을 고려." },
+    { id:3123, subject:3, question:"변압기 보호장치 중 1차측 단락보호용으로 가장 적합한 것은?",
+      options:["퓨즈(PF)","피뢰기","변류기","ZCT"], answer:1,
+      explanation:"변압기 1차측 단락보호는 PF(전력퓨즈) 또는 차단기를 사용." },
+    { id:3124, subject:3, question:"전선의 접속에 관한 사항으로 옳지 않은 것은?",
+      options:["전기저항을 증가시키지 않도록 접속","접속부의 절연을 원래 전선의 절연 이상으로 회복",
+              "전선의 세기를 80% 이상으로 유지","납땜만으로 접속(테이프 생략)"], answer:4,
+      explanation:"납땜만으로 접속 후 절연 처리(테이핑 등) 미실시는 부적합. 절연 회복 필수." },
+    { id:3125, subject:3, question:"전기기계기구의 외함 접지(보호접지)의 목적은?",
+      options:["역률 개선","감전 방지","고조파 억제","효율 향상"], answer:2,
+      explanation:"외함 접지(보호접지)는 누전 시 인체 감전사고를 방지하기 위한 것." }
+    // 이후 100문항/과목까지 확장 가능한 JSON 구조
   ];
 
   /* ============================================================
-   *  [2] 상태 관리 (State + LocalStorage)
+   *  [2] 핵심 학습 정리 (Notes)
    * ============================================================ */
-  const STORAGE_KEY = 'voltpass_state_v1';
+  const STUDY_NOTES = {
+    1: {
+      title: "1과목 · 전기이론 핵심 정리",
+      color: "from-sky-500 to-sky-700",
+      topics: [
+        { h:"옴의 법칙 & 합성저항",
+          body:`<p><b>옴의 법칙</b>: <span class="formula">V = IR</span>, <span class="formula">I = V/R</span>, <span class="formula">R = V/I</span></p>
+          <p><b>직렬</b>: R = R₁+R₂+...  ·  <b>병렬</b>: 1/R = 1/R₁+1/R₂+... (2개일 때 R=R₁R₂/(R₁+R₂))</p>
+          <p class="text-rose-700">⚡ 빈출 — 3Ω·6Ω 직렬=9Ω / 병렬=2Ω</p>` },
+        { h:"전력 · 줄의 법칙",
+          body:`<p><b>전력</b>: <span class="formula">P = VI = I²R = V²/R</span> [W]</p>
+          <p><b>전력량</b>: W = Pt [Wh]  ·  <b>줄의 법칙</b>: H = I²Rt [J]</p>` },
+        { h:"콘덴서 (정전용량)",
+          body:`<p>전하 <span class="formula">Q = CV</span>  ·  에너지 <span class="formula">W = ½CV²</span> [J]</p>
+          <p><b>직렬</b>: 1/C = 1/C₁+1/C₂  ·  <b>병렬</b>: C = C₁+C₂  (저항과 반대!)</p>` },
+        { h:"교류 · 실효값 / 평균값",
+          body:`<p>정현파: <span class="formula">V = Vm/√2</span> (실효값) ≒ 0.707Vm</p>
+          <p>평균값 <span class="formula">Vavg = 2Vm/π</span> ≒ 0.637Vm (반파)</p>
+          <p>파형률 = 실효값/평균값 = 1.11  ·  파고율 = 최대값/실효값 = 1.414</p>` },
+        { h:"임피던스 · 공진",
+          body:`<p>RLC 직렬 <span class="formula">Z = √(R² + (XL−XC)²)</span></p>
+          <p>유도 리액턴스 XL = 2πfL  ·  용량 리액턴스 XC = 1/(2πfC)</p>
+          <p><b>공진 조건</b>: XL = XC → Z = R(최소), I = 최대</p>` },
+        { h:"3상 결선 (Y / Δ)",
+          body:`<p><b>Y결선</b>: VL = √3·Vp, IL = Ip</p>
+          <p><b>Δ결선</b>: VL = Vp, IL = √3·Ip</p>
+          <p>3상 전력 <span class="formula">P = √3·VL·IL·cosθ</span></p>` },
+        { h:"전자유도 · 자기회로",
+          body:`<p>패러데이: <span class="formula">e = −N·dΦ/dt</span></p>
+          <p>렌츠: 유도전류는 자속변화를 방해하는 방향</p>
+          <p>자속밀도 B[T] = Φ/A  ·  인덕턴스 L[H]  ·  도체저항 R = ρℓ/A</p>` },
+      ]
+    },
+    2: {
+      title: "2과목 · 전기기기 핵심 정리",
+      color: "from-emerald-500 to-emerald-700",
+      topics: [
+        { h:"직류기 (발전기 / 전동기)",
+          body:`<p>유기기전력 <span class="formula">E = (pZ/60a)·φ·N</span> → φ·N에 비례</p>
+          <p>토크 <span class="formula">T = K·φ·Ia</span> → 자속·전기자전류 곱에 비례</p>
+          <p>속도제어: <b>계자·저항·전압</b> 제어 (주파수제어 X)</p>
+          <p class="text-rose-700">⚡ 직권전동기는 무부하 운전 금지(폭주 위험)</p>` },
+        { h:"변압기",
+          body:`<p>권수비 <span class="formula">a = N₁/N₂ = V₁/V₂ = I₂/I₁</span></p>
+          <p>손실: <b>무부하시험 → 철손</b>, <b>단락시험 → 동손</b></p>
+          <p>효율 최대 조건: 철손 = 동손</p>
+          <p>%임피던스 → 단락전류 Is/In = 100/%Z (예: %Z=4 → 25배)</p>` },
+        { h:"변압기 결선",
+          body:`<p>Y-Y, Y-Δ, Δ-Y, Δ-Δ, V-V (예비)</p>
+          <p>Y-Δ는 1·2차 위상차 <b>30°</b> 발생</p>
+          <p>V결선 출력비: Δ 대비 <b>57.7%</b>, 이용률 86.6%</p>` },
+        { h:"동기기 (발전기/전동기)",
+          body:`<p>동기속도 <span class="formula">Ns = 120f/P</span> [rpm]</p>
+          <p>병렬운전 조건: 크기·주파수·위상·파형·상회전 일치</p>
+          <p>V곡선: 계자전류로 역률 조정 가능 (전압·전류 평행)</p>` },
+        { h:"유도전동기 (가장 빈출)",
+          body:`<p>슬립 <span class="formula">s = (Ns−N)/Ns</span>, 회전속도 N = (1−s)Ns</p>
+          <p>회전방향 전환: <b>3선 중 임의의 2선 교환</b></p>
+          <p>기동법(농형): 전전압·Y-Δ·리액터·기동보상기. 권선형: 2차저항 기동</p>
+          <p>비례추이: 2차저항 가감 → 기동토크 증대 / 속도제어</p>` },
+        { h:"정류회로 / 파워일렉트로닉스",
+          body:`<p>단상 반파 <span class="formula">Edc = 0.45V</span>  ·  단상 전파 <span class="formula">Edc = 0.9V</span></p>
+          <p>3상 전파(브리지) <span class="formula">Edc = 1.35V</span></p>
+          <p>SCR: 단방향 3단자 정류소자  ·  인버터: DC→AC  ·  컨버터: AC→DC</p>` },
+        { h:"절연 종별 (최고허용온도)",
+          body:`<p>Y90 / A105 / E120 / B130 / F155 / H180 / C180초과</p>
+          <p>변압기 절연유: 절연내력↑, 인화점↑, 냉각효과↑, 화학안정</p>` },
+      ]
+    },
+    3: {
+      title: "3과목 · 전기설비 (KEC) 핵심 정리",
+      color: "from-amber-500 to-orange-600",
+      topics: [
+        { h:"전압 구분 (KEC)",
+          body:`<p><b>저압</b>: DC 1.5kV 이하, AC 1kV 이하</p>
+          <p><b>고압</b>: 저압 초과 ~ 7kV 이하</p>
+          <p><b>특고압</b>: 7kV 초과</p>` },
+        { h:"전선 식별 (반드시 암기)",
+          body:`<table class="w-full text-sm">
+          <tr><th class="text-left p-1">상</th><th class="text-left p-1">색상</th></tr>
+          <tr><td class="p-1">L1 (R)</td><td class="p-1">갈색</td></tr>
+          <tr><td class="p-1">L2 (S)</td><td class="p-1">흑색</td></tr>
+          <tr><td class="p-1">L3 (T)</td><td class="p-1">회색</td></tr>
+          <tr><td class="p-1">N (중성)</td><td class="p-1">청색</td></tr>
+          <tr><td class="p-1">보호도체(PE)</td><td class="p-1">녹색-노랑 줄무늬</td></tr>
+          </table>` },
+        { h:"접지 시스템",
+          body:`<p><b>계통접지</b>: TN/TT/IT — 변압기 중성점</p>
+          <p><b>보호접지</b>: 기기 외함 — 감전 방지</p>
+          <p><b>피뢰접지</b>: 낙뢰 대지 방류</p>
+          <p><b>기능접지</b>: 노이즈·기준전위</p>` },
+        { h:"누전차단기 (ELB)",
+          body:`<p><b>인체보호용</b>: 정격감도 30mA 이하, 0.03초 이내</p>
+          <p><b>화재예방용</b>: 200~300mA, 0.1초</p>` },
+        { h:"차단기 (MCCB/CB) · 단로기 (DS)",
+          body:`<p><b>MCCB</b>: AT(정격동작전류), AF(프레임)</p>
+          <p><b>CB</b>: 부하·고장전류 차단 가능</p>
+          <p><b>DS</b>: 무전류 상태에서만 개폐(보수용)</p>` },
+        { h:"배선 공사 방법",
+          body:`<p><b>금속관</b>: 기계적·전기적 완전 접속 필수</p>
+          <p><b>합성수지관</b>: 접속 시 관 외경의 1.2배(접착 X), 0.8배(접착 O)</p>
+          <p><b>가요전선관</b>: 진동·이동 부위에 사용</p>
+          <p><b>케이블트레이</b>: 다심·외장 케이블 (단심 비닐외장 ❌)</p>` },
+        { h:"전선 굵기 · 절연저항",
+          body:`<p>저압 옥내 최소 굵기: <b>2.5[mm²]</b> (연동선)</p>
+          <p>옥내배선용 표준: <b>IV</b> 비닐절연전선</p>
+          <p>절연저항(KEC): SELV/PELV 0.5MΩ, FELV·500V이하 1.0MΩ</p>` },
+        { h:"개폐기 · 보호장치 배치",
+          body:`<p>인입구 → 개폐기 + 과전류차단기</p>
+          <p>변압기 1차측 단락보호: <b>PF(전력퓨즈)</b> 또는 CB</p>
+          <p>변류기(CT): 큰 전류를 계측·보호용으로 변환 (차단 X)</p>
+          <p>피뢰기(LA): 이상전압(서지) → 대지 방류</p>` },
+      ]
+    },
+    9: {
+      title: "🔧 실기 작업형 핵심 (참고)",
+      color: "from-rose-500 to-pink-700",
+      topics: [
+        { h:"자기유지(Self-holding) 회로",
+          body:`<p>기동 PB의 a접점과 <b>코일 a접점</b>을 <b>병렬</b>로 연결 → PB를 떼도 코일이 여자 상태 유지</p>
+          <p>정지 PB의 <b>b접점</b>은 코일과 <b>직렬</b>로 삽입</p>` },
+        { h:"8핀 릴레이(MY2N) 핀맵",
+          body:`<p>코일 단자: <b>7-8번</b></p>
+          <p>접점 1: COM=1, a=3, b=5  ·  접점 2: COM=4, a=2, b=6</p>` },
+        { h:"부품 배치도 (제어판)",
+          body:`<p>상단: 차단기(MCCB) → 중단: 전자접촉기(MC), 릴레이, 타이머 → 하단: 단자대(TB)</p>
+          <p>발열소자 위, 신호소자 아래 원칙. 배선 정리·결속 필수.</p>` },
+        { h:"결선 주의사항",
+          body:`<ul class="list-disc pl-5 space-y-1">
+          <li>3상 회전방향 변경: <b>R-S-T 중 2선 교환</b> (1선만 바꾸면 결상)</li>
+          <li>접지(PE) 누락 금지 — 외함에 반드시 결선</li>
+          <li>전선 색상 규정 준수: 갈/흑/회/청/녹황</li>
+          <li>단자 조임 토크 확인 — 발열·접촉불량 방지</li>
+          </ul>` },
+        { h:"실격 사유 체크리스트",
+          body:`<ul class="list-disc pl-5 space-y-1 text-rose-700">
+          <li>회로 미완성 또는 전원 투입 시 단락·감전 발생</li>
+          <li>정격 부품 임의 교체</li>
+          <li>충전부 노출(피복 과다 벗김, 단자 밖 동선 노출)</li>
+          <li>접지 미시공 · 색상 위반 다발</li>
+          <li>시험 중 부정행위 · 안전수칙 위반</li>
+          </ul>` },
+      ]
+    }
+  };
+
+  /* ============================================================
+   *  [3] 상태 관리 + LocalStorage
+   * ============================================================ */
+  const STORAGE_KEY = 'voltpass_cbt_v2';
   const defaultState = {
-    solvedIds: [],   // 한 번이라도 푼 문제 id 목록
-    wrongIds: [],    // 오답 노트 id 목록
-    last: null       // { mode, subject, index }
+    rounds: {},      // { 1: {answers, flags, savedAt, score, passed, subjectScores, finished, startedAt, remaining} ... }
+    wrongIds: [],    // 오답노트
+    activeRound: null
   };
   let state = loadState();
 
-  function loadState() {
+  function loadState(){
     try {
       const raw = localStorage.getItem(STORAGE_KEY);
       if (!raw) return structuredClone(defaultState);
-      const parsed = JSON.parse(raw);
-      return { ...structuredClone(defaultState), ...parsed };
+      return { ...structuredClone(defaultState), ...JSON.parse(raw) };
     } catch { return structuredClone(defaultState); }
   }
-  function saveState() {
-    localStorage.setItem(STORAGE_KEY, JSON.stringify(state));
-  }
-  function markSolved(id) {
-    if (!state.solvedIds.includes(id)) state.solvedIds.push(id);
-    saveState();
-  }
-  function toggleWrong(id, force) {
+  function saveState(){ localStorage.setItem(STORAGE_KEY, JSON.stringify(state)); }
+  function toggleWrong(id, force){
     const i = state.wrongIds.indexOf(id);
-    if (force === true && i < 0) state.wrongIds.push(id);
-    else if (force === false && i >= 0) state.wrongIds.splice(i,1);
+    if (force === true && i<0) state.wrongIds.push(id);
+    else if (force === false && i>=0) state.wrongIds.splice(i,1);
     else if (force === undefined) {
-      if (i >= 0) state.wrongIds.splice(i,1);
+      if (i>=0) state.wrongIds.splice(i,1);
       else state.wrongIds.push(id);
     }
     saveState();
   }
 
   /* ============================================================
-   *  [3] 유틸 함수
+   *  [4] 시드 셔플 + 회차별 시험지 생성
    * ============================================================ */
-  const $app = document.getElementById('app');
-  const subjectName = { 1:'1과목 · 전기이론', 2:'2과목 · 전기기기', 3:'3과목 · 전기설비', 4:'4과목 · 실기(작업형)' };
-  const subjectShort = { 1:'전기이론', 2:'전기기기', 3:'전기설비', 4:'실기 작업형' };
-
-  function getBySubject(s){ return QUESTIONS.filter(q => q.subject === s); }
-  function shuffle(arr){
+  function mulberry32(seed){
+    return function(){
+      seed |= 0; seed = seed + 0x6D2B79F5 | 0;
+      let t = Math.imul(seed ^ seed >>> 15, 1 | seed);
+      t = t + Math.imul(t ^ t >>> 7, 61 | t) ^ t;
+      return ((t ^ t >>> 14) >>> 0) / 4294967296;
+    };
+  }
+  function seededShuffle(arr, seed){
+    const rng = mulberry32(seed);
     const a = arr.slice();
     for (let i=a.length-1; i>0; i--){
-      const j = Math.floor(Math.random()*(i+1));
+      const j = Math.floor(rng()*(i+1));
       [a[i],a[j]] = [a[j],a[i]];
     }
     return a;
   }
+  // 마스터 캐시
+  const POOLS = {
+    1: QUESTIONS.filter(q=>q.subject===1),
+    2: QUESTIONS.filter(q=>q.subject===2),
+    3: QUESTIONS.filter(q=>q.subject===3)
+  };
+  // 회차별 60문항 ID 배열 생성 (1과목 20 + 2과목 20 + 3과목 20, 과목별 라운드내 다시 셔플)
+  function buildRound(round){
+    const seedBase = round * 7919 + 13;
+    const out = [];
+    for (let s=1; s<=3; s++){
+      let pool = seededShuffle(POOLS[s], seedBase + s);
+      while (pool.length < 20) pool = pool.concat(seededShuffle(POOLS[s], seedBase + s + 100));
+      out.push(...pool.slice(0,20));
+    }
+    // 과목 혼합 출제(실제 CBT처럼)
+    return seededShuffle(out, seedBase + 999).map(q=>q.id);
+  }
+
+  /* ============================================================
+   *  [5] 유틸
+   * ============================================================ */
+  const $app = document.getElementById('app');
+  const subjectShort = { 1:'전기이론', 2:'전기기기', 3:'전기설비' };
   function escapeHtml(s){
     return String(s).replace(/[&<>"']/g, c => ({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;',"'":'&#39;'}[c]));
+  }
+  function fmtTime(sec){
+    sec = Math.max(0, Math.floor(sec));
+    const m = String(Math.floor(sec/60)).padStart(2,'0');
+    const s = String(sec%60).padStart(2,'0');
+    return `${m}:${s}`;
   }
   function updateWrongBadge(){
     document.getElementById('wrong-count').textContent = state.wrongIds.length;
   }
 
   /* ============================================================
-   *  [4] 라우팅 / 렌더 진입점
-   *      view: 'home' | 'writtenSubjects' | 'writtenMode' | 'solve' | 'practical' | 'wrong'
+   *  [6] 라우팅
    * ============================================================ */
-  let currentView = { name: 'home' };
-
-  function navigate(view){
-    currentView = view;
+  let currentView = { name:'home' };
+  let timerHandle = null;
+  function navigate(v){
+    if (timerHandle){ clearInterval(timerHandle); timerHandle = null; }
+    currentView = v;
     render();
   }
   function render(){
     updateWrongBadge();
     switch(currentView.name){
-      case 'home':            return renderHome();
-      case 'writtenSubjects': return renderWrittenSubjects();
-      case 'writtenMode':     return renderWrittenMode(currentView.subject);
-      case 'solve':           return renderSolve(currentView.session);
-      case 'practical':       return renderPractical();
-      case 'wrong':           return renderWrongNote();
-      default:                return renderHome();
+      case 'home':   return renderHome();
+      case 'exam':   return renderExam(currentView.round);
+      case 'result': return renderResult(currentView.round);
+      case 'notes':  return renderNotesList();
+      case 'note':   return renderNoteDetail(currentView.subject);
+      case 'wrong':  return renderWrongNote();
+      default:       return renderHome();
     }
   }
 
   /* ============================================================
-   *  [5] 메인 대시보드 (Home)
+   *  [7] 홈 (대시보드) - 10회차 시험 카드
    * ============================================================ */
   function renderHome(){
-    const total = QUESTIONS.length;
-    const solved = state.solvedIds.length;
-    const pct = total ? Math.round(solved/total*100) : 0;
+    const totalRounds = 10;
+    const taken = Object.values(state.rounds).filter(r=>r && r.finished).length;
+    const passed = Object.values(state.rounds).filter(r=>r && r.finished && r.passed).length;
+    const avg = (() => {
+      const arr = Object.values(state.rounds).filter(r=>r && r.finished).map(r=>r.score);
+      if (!arr.length) return 0;
+      return Math.round(arr.reduce((a,b)=>a+b,0)/arr.length);
+    })();
 
     $app.innerHTML = `
       <section class="fade-in">
-        <!-- 학습 진행률 카드 -->
+        <!-- 상단 요약 -->
         <div class="bg-white rounded-2xl shadow-sm border border-slate-200 p-5 mb-5">
-          <div class="flex items-end justify-between mb-2">
+          <div class="flex items-end justify-between mb-3">
             <div>
-              <p class="text-xs text-slate-500">전체 학습 진행률</p>
-              <p class="text-2xl font-bold text-slate-900">
-                ${solved} <span class="text-slate-400 text-base font-medium">/ ${total} 문항</span>
-              </p>
+              <p class="text-xs text-slate-500">CBT 모의고사 진행</p>
+              <p class="text-2xl font-bold text-slate-900">${taken} <span class="text-slate-400 text-base font-medium">/ ${totalRounds} 회 응시</span></p>
             </div>
             <div class="text-right">
-              <div class="text-3xl font-extrabold text-brand-600">${pct}<span class="text-base">%</span></div>
-              <div class="text-[11px] text-slate-400">누적 정복률</div>
+              <div class="text-3xl font-extrabold text-brand-600">${avg}<span class="text-base">점</span></div>
+              <div class="text-[11px] text-slate-400">평균 / 합격 ${passed}회</div>
             </div>
           </div>
           <div class="w-full h-2.5 rounded-full progress-track overflow-hidden">
-            <div class="h-full progress-bar rounded-full" style="width:${pct}%"></div>
+            <div class="h-full progress-bar" style="width:${(taken/totalRounds)*100}%"></div>
           </div>
-          <div class="mt-3 grid grid-cols-4 gap-2 text-center text-[11px]">
-            ${[1,2,3,4].map(s=>{
-              const t = getBySubject(s).length;
-              const so = state.solvedIds.filter(id => QUESTIONS.find(q=>q.id===id)?.subject===s).length;
-              return `
-                <div class="bg-slate-50 rounded-lg py-2">
-                  <div class="font-semibold text-slate-700">${subjectShort[s]}</div>
-                  <div class="text-slate-500">${so}/${t}</div>
-                </div>`;
-            }).join('')}
+          <div class="mt-3 text-[11px] text-slate-500 leading-relaxed">
+            ※ CBT 방식 · 60문항(과목별 20문항 혼합) · 제한 60분 · <b>60점 이상 합격</b> (과목 낙제 없음)
           </div>
         </div>
 
-        <!-- 시험 선택 카드 -->
-        <h2 class="text-sm font-semibold text-slate-600 mb-3 px-1">시험 종류 선택</h2>
-        <div class="grid grid-cols-1 sm:grid-cols-2 gap-4">
-          <button data-go="written"
-            class="mode-card text-left bg-gradient-to-br from-brand-500 to-brand-700 text-white rounded-2xl p-5 shadow-md">
-            <div class="flex items-center justify-between">
-              <div class="w-12 h-12 bg-white/15 rounded-xl grid place-items-center">
-                <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="currentColor" class="w-7 h-7">
-                  <path d="M4 4h16v2H4zm0 5h16v2H4zm0 5h10v2H4zm0 5h16v2H4z"/>
-                </svg>
-              </div>
-              <span class="text-xs bg-white/20 px-2 py-1 rounded-full">CBT</span>
-            </div>
-            <div class="mt-4">
-              <div class="text-xl font-bold">필기 시험</div>
-              <p class="text-sm text-white/85 mt-1">3개 과목 · 학습모드 / 60문항 모의고사</p>
-            </div>
-          </button>
+        <!-- 10회 시험 카드 -->
+        <h2 class="text-sm font-semibold text-slate-600 mb-3 px-1 flex items-center justify-between">
+          <span>📝 10회분 모의고사</span>
+          <span class="text-[11px] text-slate-400">회차별 다른 문제 출제</span>
+        </h2>
 
-          <button data-go="practical"
-            class="mode-card text-left bg-gradient-to-br from-amber-500 to-orange-600 text-white rounded-2xl p-5 shadow-md">
-            <div class="flex items-center justify-between">
-              <div class="w-12 h-12 bg-white/15 rounded-xl grid place-items-center">
-                <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="currentColor" class="w-7 h-7">
-                  <path d="M22 9 12 2 2 9v13h6v-7h8v7h6z"/>
-                </svg>
-              </div>
-              <span class="text-xs bg-white/20 px-2 py-1 rounded-full">작업형</span>
-            </div>
-            <div class="mt-4">
-              <div class="text-xl font-bold">실기 시험</div>
-              <p class="text-sm text-white/85 mt-1">시퀀스 제어 · 도면 · 결선 주의사항 · 실격사유</p>
-            </div>
-          </button>
-        </div>
-
-        <!-- 최근 학습 이어하기 -->
-        ${ state.last ? `
-          <div class="mt-5 bg-white rounded-2xl border border-slate-200 p-4 flex items-center justify-between">
-            <div>
-              <div class="text-[11px] text-brand-600 font-bold">최근 학습</div>
-              <div class="text-sm font-semibold text-slate-800">
-                ${escapeHtml(state.last.label || '')}
-              </div>
-            </div>
-            <button id="btn-resume" class="px-3 py-2 text-sm rounded-lg bg-brand-600 text-white font-semibold hover:bg-brand-700">
-              이어하기 →
-            </button>
-          </div>` : ``}
-      </section>
-    `;
-
-    // 이벤트 바인딩
-    $app.querySelectorAll('[data-go]').forEach(btn=>{
-      btn.addEventListener('click', e=>{
-        const target = btn.dataset.go;
-        if (target === 'written')  navigate({name:'writtenSubjects'});
-        if (target === 'practical')navigate({name:'practical'});
-      });
-    });
-    const resumeBtn = document.getElementById('btn-resume');
-    if (resumeBtn) resumeBtn.addEventListener('click', resumeLast);
-  }
-
-  function resumeLast(){
-    const L = state.last;
-    if (!L) return;
-    if (L.kind === 'written'){
-      const list = getBySubject(L.subject);
-      const ids = L.mode === 'exam' ? L.ids : list.map(q=>q.id);
-      startSolveSession({ ids, mode: L.mode, subject: L.subject, startIndex: L.index || 0 });
-    } else if (L.kind === 'practical'){
-      navigate({name:'practical'});
-    }
-  }
-
-  /* ============================================================
-   *  [6] 필기 시험 - 과목 선택
-   * ============================================================ */
-  function renderWrittenSubjects(){
-    $app.innerHTML = `
-      <section class="fade-in">
-        <button class="text-sm text-brand-600 mb-3" id="back-home">← 대시보드</button>
-        <h2 class="text-xl font-bold mb-1">필기 시험 · 과목 선택</h2>
-        <p class="text-sm text-slate-500 mb-5">학습할 과목을 선택하세요.</p>
-
-        <div class="space-y-3">
-          ${[1,2,3].map(s=>{
-            const total = getBySubject(s).length;
-            const solved = state.solvedIds.filter(id => QUESTIONS.find(q=>q.id===id)?.subject===s).length;
-            const pct = total ? Math.round(solved/total*100) : 0;
+        <div class="grid grid-cols-2 sm:grid-cols-2 gap-3">
+          ${Array.from({length: totalRounds}, (_,i)=>{
+            const r = i+1;
+            const rec = state.rounds[r];
+            const status = rec?.finished ? 'done' : (rec ? 'progress' : 'new');
+            const score = rec?.finished ? rec.score : null;
+            const pass = rec?.finished ? rec.passed : null;
             return `
-              <button data-subject="${s}"
-                class="w-full text-left bg-white border border-slate-200 rounded-2xl p-4 hover:border-brand-400 hover:shadow-md transition">
-                <div class="flex items-center justify-between mb-2">
-                  <div class="flex items-center gap-3">
-                    <div class="w-10 h-10 rounded-xl bg-brand-50 text-brand-700 grid place-items-center font-bold">${s}</div>
-                    <div>
-                      <div class="font-bold text-slate-900">${subjectName[s]}</div>
-                      <div class="text-xs text-slate-500">총 ${total}문항 · 진도 ${solved}/${total}</div>
-                    </div>
-                  </div>
-                  <span class="text-brand-600">→</span>
+              <button data-round="${r}" class="hover-card text-left bg-white border border-slate-200 rounded-2xl p-4 shadow-sm">
+                <div class="flex items-center justify-between">
+                  <div class="text-xs font-bold text-brand-600">제 ${r} 회</div>
+                  ${ status==='done' ? `<span class="text-[10px] px-2 py-0.5 rounded-full ${pass?'bg-emerald-100 text-emerald-700':'bg-rose-100 text-rose-700'} font-bold">${pass?'합격':'불합격'}</span>`
+                    : status==='progress' ? `<span class="text-[10px] px-2 py-0.5 rounded-full bg-amber-100 text-amber-700 font-bold">응시중</span>`
+                    : `<span class="text-[10px] px-2 py-0.5 rounded-full bg-slate-100 text-slate-500 font-bold">미응시</span>` }
                 </div>
-                <div class="w-full h-1.5 rounded-full progress-track overflow-hidden">
-                  <div class="h-full progress-bar" style="width:${pct}%"></div>
+                <div class="mt-2">
+                  ${ status==='done'
+                    ? `<div class="text-2xl font-extrabold ${pass?'text-emerald-600':'text-rose-600'}">${score}<span class="text-sm font-bold">점</span></div>
+                       <div class="text-[11px] text-slate-500">결과 보기 →</div>`
+                    : status==='progress'
+                    ? `<div class="text-base font-bold text-slate-800">이어서 응시</div>
+                       <div class="text-[11px] text-amber-600">진행률 ${Math.round((Object.values(rec.answers||{}).filter(v=>v!=null).length)/60*100)}%</div>`
+                    : `<div class="text-base font-bold text-slate-800">시작하기</div>
+                       <div class="text-[11px] text-slate-500">60문항 / 60분</div>` }
                 </div>
               </button>`;
           }).join('')}
         </div>
-      </section>
-    `;
-    document.getElementById('back-home').onclick = ()=>navigate({name:'home'});
-    $app.querySelectorAll('[data-subject]').forEach(b=>{
-      b.onclick = ()=> navigate({ name:'writtenMode', subject: Number(b.dataset.subject) });
-    });
-  }
 
-  /* ============================================================
-   *  [7] 필기 시험 - 모드 선택
-   * ============================================================ */
-  function renderWrittenMode(subject){
-    const list = getBySubject(subject);
-    $app.innerHTML = `
-      <section class="fade-in">
-        <button class="text-sm text-brand-600 mb-3" id="back-subjects">← 과목 선택</button>
-        <h2 class="text-xl font-bold mb-1">${subjectName[subject]}</h2>
-        <p class="text-sm text-slate-500 mb-5">학습 방법을 선택하세요.</p>
-
-        <div class="grid grid-cols-1 sm:grid-cols-2 gap-4">
-          <button data-mode="study" class="mode-card text-left bg-white rounded-2xl p-5 border border-slate-200 shadow-sm">
-            <div class="w-11 h-11 rounded-xl bg-emerald-100 text-emerald-700 grid place-items-center text-xl font-bold">📖</div>
-            <div class="mt-3 text-lg font-bold text-slate-900">학습 모드</div>
-            <p class="text-sm text-slate-500 mt-1">순차적으로 한 문제씩 풀며 해설을 즉시 확인합니다.</p>
-            <div class="text-xs text-slate-400 mt-3">문항 수: ${list.length}문제</div>
+        <!-- 빠른 진입 -->
+        <div class="grid grid-cols-2 gap-3 mt-5">
+          <button id="quick-notes" class="hover-card p-4 rounded-2xl bg-gradient-to-br from-emerald-500 to-emerald-700 text-white text-left shadow">
+            <div class="text-xs opacity-80">학습 자료</div>
+            <div class="text-lg font-bold mt-0.5">📚 과목별 핵심정리</div>
+            <div class="text-[11px] opacity-80 mt-1">1·2·3과목 + 실기 작업형 핵심</div>
           </button>
-
-          <button data-mode="exam" class="mode-card text-left bg-white rounded-2xl p-5 border border-slate-200 shadow-sm">
-            <div class="w-11 h-11 rounded-xl bg-rose-100 text-rose-700 grid place-items-center text-xl font-bold">📝</div>
-            <div class="mt-3 text-lg font-bold text-slate-900">모의고사 모드</div>
-            <p class="text-sm text-slate-500 mt-1">60문항을 랜덤 출제합니다. 응시 후 결과를 확인하세요.</p>
-            <div class="text-xs text-slate-400 mt-3">${list.length < 60 ? `현재 등록 ${list.length}문 → 부족분 반복 출제` : '60문항 무작위 출제'}</div>
+          <button id="quick-wrong" class="hover-card p-4 rounded-2xl bg-gradient-to-br from-amber-500 to-orange-600 text-white text-left shadow">
+            <div class="text-xs opacity-80">복습</div>
+            <div class="text-lg font-bold mt-0.5">⭐ 오답노트 (${state.wrongIds.length})</div>
+            <div class="text-[11px] opacity-80 mt-1">틀린 문제만 모아서 복습</div>
           </button>
         </div>
       </section>
     `;
-    document.getElementById('back-subjects').onclick = ()=>navigate({name:'writtenSubjects'});
-    $app.querySelectorAll('[data-mode]').forEach(b=>{
-      b.onclick = ()=>{
-        const mode = b.dataset.mode;
-        if (mode === 'study'){
-          const ids = list.map(q=>q.id);
-          startSolveSession({ ids, mode: 'study', subject });
-        } else {
-          // 모의고사: 60문항, 부족분은 반복
-          let pool = shuffle(list);
-          const need = 60;
-          const out = [];
-          while (out.length < need){
-            if (pool.length === 0) pool = shuffle(list);
-            out.push(pool.pop());
-          }
-          startSolveSession({ ids: out.map(q=>q.id), mode: 'exam', subject });
+    $app.querySelectorAll('[data-round]').forEach(btn=>{
+      btn.onclick = ()=>{
+        const r = Number(btn.dataset.round);
+        const rec = state.rounds[r];
+        if (rec?.finished) navigate({name:'result', round:r});
+        else navigate({name:'exam', round:r});
+      };
+    });
+    document.getElementById('quick-notes').onclick = ()=>navigate({name:'notes'});
+    document.getElementById('quick-wrong').onclick = ()=>navigate({name:'wrong'});
+  }
+
+  /* ============================================================
+   *  [8] CBT 시험 화면
+   * ============================================================ */
+  function renderExam(round){
+    // 회차 데이터 초기화
+    if (!state.rounds[round]){
+      state.rounds[round] = {
+        ids: buildRound(round),
+        answers: {},  // {qid: 1~4}
+        flags: {},    // {qid: true}
+        cursor: 0,
+        startedAt: Date.now(),
+        durationSec: 60 * 60,
+        finished: false
+      };
+      saveState();
+    }
+    const rec = state.rounds[round];
+
+    const elapsed = Math.floor((Date.now() - rec.startedAt)/1000);
+    let remaining = rec.durationSec - elapsed;
+    if (remaining <= 0){
+      finishExam(round, true);
+      return;
+    }
+
+    function renderInner(){
+      const qid = rec.ids[rec.cursor];
+      const q = QUESTIONS.find(x=>x.id===qid);
+      const picked = rec.answers[qid];
+      const flagged = !!rec.flags[qid];
+      const answeredCount = Object.values(rec.answers).filter(v=>v!=null).length;
+
+      $app.innerHTML = `
+        <section class="fade-in">
+          <!-- 상단: 회차 / 타이머 -->
+          <div class="flex items-center justify-between mb-3">
+            <button id="exam-back" class="text-sm text-slate-500">← 일시 저장 후 나가기</button>
+            <div id="timer" class="timer-pill px-3 py-1.5 rounded-lg font-bold text-sm">⏱ ${fmtTime(remaining)}</div>
+          </div>
+
+          <!-- 진행 -->
+          <div class="flex items-center justify-between text-xs text-slate-500 mb-1">
+            <span><b class="text-brand-700">제 ${round} 회</b> · ${rec.cursor+1} / 60 · <span class="text-slate-400">${subjectShort[q.subject]}</span></span>
+            <span>응답 ${answeredCount}/60</span>
+          </div>
+          <div class="w-full h-1.5 rounded-full progress-track overflow-hidden mb-4">
+            <div class="h-full progress-bar" style="width:${((rec.cursor+1)/60)*100}%"></div>
+          </div>
+
+          <!-- 문항 카드 -->
+          <div class="bg-white rounded-2xl border border-slate-200 p-5 shadow-sm">
+            <div class="flex items-start justify-between gap-2">
+              <h3 class="text-base sm:text-lg font-semibold text-slate-900 leading-relaxed">
+                <span class="text-brand-600 font-extrabold">Q${rec.cursor+1}.</span>
+                ${escapeHtml(q.question)}
+              </h3>
+              <button id="flag-btn" class="flex-shrink-0 text-xs px-2 py-1 rounded-lg border ${flagged?'bg-amber-500 text-white border-amber-500':'bg-white text-amber-700 border-amber-300'} font-semibold">
+                ${flagged?'🚩 책갈피':'⚐ 책갈피'}
+              </button>
+            </div>
+
+            <div class="space-y-2.5 mt-4">
+              ${q.options.map((opt,i)=>{
+                const n = i+1;
+                const id = `opt-${qid}-${n}`;
+                const ck = picked===n ? 'checked':'';
+                return `
+                  <input class="opt-input hidden" type="radio" name="opt-${qid}" id="${id}" value="${n}" ${ck}>
+                  <label for="${id}" class="opt-label flex items-start gap-3 rounded-xl p-3 cursor-pointer bg-white">
+                    <span class="opt-num flex-shrink-0 w-7 h-7 rounded-full border border-slate-300 text-slate-600 grid place-items-center text-sm font-bold">${n}</span>
+                    <span class="text-sm sm:text-base text-slate-800 leading-relaxed pt-0.5">${escapeHtml(opt)}</span>
+                  </label>`;
+              }).join('')}
+            </div>
+          </div>
+
+          <!-- 이전/다음 -->
+          <div class="grid grid-cols-3 gap-2 mt-4">
+            <button id="prev-btn" class="py-3 rounded-xl bg-slate-100 text-slate-700 font-bold disabled:opacity-40" ${rec.cursor===0?'disabled':''}>← 이전</button>
+            <button id="clear-btn" class="py-3 rounded-xl bg-white border border-slate-200 text-slate-600 font-bold">답안 지우기</button>
+            <button id="next-btn" class="py-3 rounded-xl bg-brand-600 text-white font-bold ${rec.cursor===59?'!bg-rose-600':''}">${rec.cursor===59?'시험 종료':'다음 →'}</button>
+          </div>
+
+          <!-- 문항 네비게이션 (CBT 답안지) -->
+          <div class="mt-5 bg-white rounded-2xl border border-slate-200 p-3">
+            <div class="text-[11px] text-slate-500 mb-2 px-1 flex items-center gap-3">
+              <span class="flex items-center gap-1"><span class="w-3 h-3 rounded bg-slate-200"></span>미응시</span>
+              <span class="flex items-center gap-1"><span class="w-3 h-3 rounded bg-blue-200"></span>응시</span>
+              <span class="flex items-center gap-1"><span class="w-3 h-3 rounded bg-amber-200"></span>책갈피</span>
+            </div>
+            <div class="grid grid-cols-10 gap-1.5" id="nav-grid">
+              ${rec.ids.map((id,idx)=>{
+                const ans = rec.answers[id]!=null;
+                const fg  = !!rec.flags[id];
+                const cls = fg ? 'nav-flagged' : (ans ? 'nav-answered' : 'nav-blank');
+                const cur = idx===rec.cursor ? 'nav-current' : '';
+                return `<button class="nav-cell ${cls} ${cur}" data-jump="${idx}">${idx+1}</button>`;
+              }).join('')}
+            </div>
+            <button id="submit-btn" class="mt-3 w-full py-3 rounded-xl bg-rose-600 text-white font-bold hover:bg-rose-700">⏹ 시험 종료 및 채점</button>
+          </div>
+        </section>
+      `;
+
+      // 이벤트
+      $app.querySelectorAll(`input[name="opt-${qid}"]`).forEach(inp=>{
+        inp.addEventListener('change', e=>{
+          rec.answers[qid] = Number(e.target.value);
+          saveState();
+          // 네비 갱신만 부분적으로
+          const cell = document.querySelector(`[data-jump="${rec.cursor}"]`);
+          if (cell){ cell.classList.remove('nav-blank'); cell.classList.add(rec.flags[qid]?'nav-flagged':'nav-answered'); }
+        });
+      });
+      document.getElementById('flag-btn').onclick = ()=>{
+        rec.flags[qid] = !rec.flags[qid];
+        saveState(); renderInner();
+      };
+      document.getElementById('clear-btn').onclick = ()=>{
+        delete rec.answers[qid]; saveState(); renderInner();
+      };
+      document.getElementById('prev-btn').onclick = ()=>{
+        if (rec.cursor>0){ rec.cursor--; saveState(); renderInner(); }
+      };
+      document.getElementById('next-btn').onclick = ()=>{
+        if (rec.cursor < 59){ rec.cursor++; saveState(); renderInner(); }
+        else { confirmSubmit(); }
+      };
+      document.getElementById('submit-btn').onclick = confirmSubmit;
+      document.getElementById('exam-back').onclick = ()=>{
+        saveState();
+        if (timerHandle) clearInterval(timerHandle);
+        navigate({name:'home'});
+      };
+      $app.querySelectorAll('[data-jump]').forEach(b=>{
+        b.onclick = ()=>{ rec.cursor = Number(b.dataset.jump); saveState(); renderInner(); };
+      });
+      // 타이머 영역만 유지
+      attachTimer();
+    }
+
+    function confirmSubmit(){
+      const unanswered = 60 - Object.values(rec.answers).filter(v=>v!=null).length;
+      const msg = unanswered>0
+        ? `미응시 ${unanswered}문항이 있습니다. 정말 종료할까요?`
+        : `시험을 종료하고 채점할까요?`;
+      if (confirm(msg)) finishExam(round, false);
+    }
+
+    function attachTimer(){
+      const elTimer = document.getElementById('timer');
+      const tick = ()=>{
+        const e = Math.floor((Date.now() - rec.startedAt)/1000);
+        const left = rec.durationSec - e;
+        if (left<=0){
+          clearInterval(timerHandle); timerHandle=null;
+          alert('⏰ 시험 시간이 종료되었습니다. 자동 채점합니다.');
+          finishExam(round, true);
+          return;
+        }
+        if (elTimer){
+          elTimer.textContent = `⏱ ${fmtTime(left)}`;
+          if (left <= 300) elTimer.classList.add('timer-warn');
         }
       };
-    });
+      if (timerHandle) clearInterval(timerHandle);
+      timerHandle = setInterval(tick, 1000);
+    }
+
+    renderInner();
   }
 
   /* ============================================================
-   *  [8] 풀이 세션 (학습 / 모의고사 공용)
+   *  [9] 채점 및 결과
    * ============================================================ */
-  function startSolveSession({ids, mode, subject, startIndex=0}){
-    const session = {
-      ids, mode, subject,
-      index: Math.max(0, Math.min(startIndex, ids.length-1)),
-      answers: new Array(ids.length).fill(null), // 사용자가 고른 보기번호(1~4)
-      checked: new Array(ids.length).fill(false),
-      finished: false
-    };
-    navigate({ name:'solve', session });
-  }
-
-  function renderSolve(s){
-    if (s.finished) return renderResult(s);
-
-    const qid = s.ids[s.index];
-    const q = QUESTIONS.find(x=>x.id===qid);
-    const userPick = s.answers[s.index];
-    const isChecked = s.checked[s.index];
-    const isWrong = state.wrongIds.includes(q.id);
-    const modeLabel = s.mode === 'study' ? '학습 모드' : '모의고사';
-
-    // 최근 학습 저장
-    state.last = {
-      kind: 'written',
-      mode: s.mode,
-      subject: s.subject,
-      index: s.index,
-      ids: s.ids,
-      label: `${subjectName[s.subject]} · ${modeLabel} (${s.index+1}/${s.ids.length})`
-    };
-    saveState();
-
-    $app.innerHTML = `
-      <section class="fade-in">
-        <div class="flex items-center justify-between mb-3">
-          <button id="back-mode" class="text-sm text-brand-600">← 종료</button>
-          <div class="text-xs text-slate-500">
-            <span class="font-semibold text-slate-700">${modeLabel}</span> · ${subjectShort[s.subject]}
-          </div>
-        </div>
-
-        <div class="flex items-center justify-between mb-2 text-xs text-slate-500">
-          <span>문제 ${s.index+1} / ${s.ids.length}</span>
-          <span>ID #${q.id}</span>
-        </div>
-        <div class="w-full h-1.5 rounded-full progress-track overflow-hidden mb-4">
-          <div class="h-full progress-bar" style="width:${((s.index+1)/s.ids.length)*100}%"></div>
-        </div>
-
-        <div class="bg-white rounded-2xl border border-slate-200 p-5 shadow-sm">
-          ${q.category ? `<div class="inline-block text-[10px] font-bold tracking-wider bg-amber-100 text-amber-700 px-2 py-0.5 rounded mb-2">${escapeHtml(q.category)}</div>` : ''}
-          <h3 class="text-base sm:text-lg font-semibold text-slate-900 leading-relaxed mb-4">
-            Q. ${escapeHtml(q.question)}
-          </h3>
-
-          <div class="space-y-2.5" id="opts">
-            ${q.options.map((opt, i)=>{
-              const num = i+1;
-              const id = `opt-${q.id}-${num}`;
-              let extra = '';
-              if (isChecked){
-                if (num === q.answer) extra = 'opt-correct';
-                else if (num === userPick) extra = 'opt-wrong';
-              }
-              const checked = userPick === num ? 'checked' : '';
-              return `
-                <input class="opt-input hidden" type="radio" name="opt-${q.id}" id="${id}" value="${num}" ${checked} ${isChecked?'disabled':''}>
-                <label for="${id}" class="opt-label ${extra} flex items-start gap-3 rounded-xl p-3 cursor-pointer bg-white">
-                  <span class="opt-num flex-shrink-0 w-7 h-7 rounded-full border border-slate-300 text-slate-600 grid place-items-center text-sm font-bold">${num}</span>
-                  <span class="text-sm sm:text-base text-slate-800 leading-relaxed pt-0.5">${escapeHtml(opt)}</span>
-                </label>`;
-            }).join('')}
-          </div>
-
-          ${ isChecked ? `
-            <div class="mt-4 p-4 rounded-xl ${userPick===q.answer?'bg-emerald-50 border border-emerald-200':'bg-rose-50 border border-rose-200'}">
-              <div class="flex items-center gap-2 mb-1">
-                <span class="text-sm font-bold ${userPick===q.answer?'text-emerald-700':'text-rose-700'}">
-                  ${userPick===q.answer?'✅ 정답입니다':'❌ 오답입니다'}
-                </span>
-                <span class="text-xs text-slate-500">정답: ${q.answer}번</span>
-              </div>
-              <p class="text-sm text-slate-700 leading-relaxed">
-                <span class="font-semibold">해설.</span> ${escapeHtml(q.explanation)}
-              </p>
-            </div>` : `` }
-        </div>
-
-        <!-- 액션 영역 -->
-        <div class="mt-4 grid grid-cols-3 gap-2">
-          <button id="btn-prev"
-            class="col-span-1 py-3 rounded-xl bg-slate-100 text-slate-700 font-semibold disabled:opacity-40"
-            ${s.index===0?'disabled':''}>← 이전</button>
-
-          ${ !isChecked ? `
-            <button id="btn-check"
-              class="col-span-2 py-3 rounded-xl bg-brand-600 text-white font-bold shadow disabled:opacity-40"
-              ${userPick==null?'disabled':''}>정답 확인</button>` : `
-            <button id="btn-next"
-              class="col-span-2 py-3 rounded-xl bg-brand-600 text-white font-bold shadow">
-              ${s.index === s.ids.length-1 ? (s.mode==='exam' ? '결과 보기' : '학습 완료') : '다음 문제 →'}
-            </button>` }
-        </div>
-
-        <div class="mt-3 flex items-center justify-center gap-2">
-          <button id="btn-wrong-toggle"
-            class="text-xs px-3 py-1.5 rounded-lg border ${isWrong?'bg-amber-500 text-white border-amber-500':'bg-white text-amber-700 border-amber-300'} font-semibold">
-            ${isWrong ? '★ 오답노트에서 제거' : '☆ 오답노트에 추가'}
-          </button>
-        </div>
-      </section>
-    `;
-
-    // 이벤트
-    document.getElementById('back-mode').onclick = ()=>{
-      if (s.subject === 4) navigate({name:'practical'});
-      else navigate({name:'writtenMode', subject: s.subject});
-    };
-
-    $app.querySelectorAll('input[name="opt-'+q.id+'"]').forEach(inp=>{
-      inp.addEventListener('change', e=>{
-        s.answers[s.index] = Number(e.target.value);
-        renderSolve(s); // 버튼 활성화 갱신
-      });
-    });
-
-    const btnPrev = document.getElementById('btn-prev');
-    if (btnPrev) btnPrev.onclick = ()=>{ s.index = Math.max(0, s.index-1); renderSolve(s); };
-
-    const btnCheck = document.getElementById('btn-check');
-    if (btnCheck) btnCheck.onclick = ()=>{
-      if (s.answers[s.index] == null) return;
-      s.checked[s.index] = true;
-      markSolved(q.id);
-      // 학습모드: 즉시 오답이면 자동 오답노트 등록 안 함 (수동), 시험모드도 동일
-      renderSolve(s);
-    };
-
-    const btnNext = document.getElementById('btn-next');
-    if (btnNext) btnNext.onclick = ()=>{
-      if (s.index === s.ids.length-1){
-        s.finished = true;
-        renderResult(s);
-      } else {
-        s.index++;
-        renderSolve(s);
-      }
-    };
-
-    document.getElementById('btn-wrong-toggle').onclick = ()=>{
-      toggleWrong(q.id);
-      renderSolve(s);
-    };
-  }
-
-  /* ============================================================
-   *  [9] 모의고사 결과
-   * ============================================================ */
-  function renderResult(s){
+  function finishExam(round, auto){
+    const rec = state.rounds[round];
+    if (!rec || rec.finished) { navigate({name:'result', round}); return; }
     let correct = 0;
-    s.ids.forEach((id, i)=>{
+    const subjectCorrect = {1:0,2:0,3:0};
+    const subjectTotal   = {1:0,2:0,3:0};
+    rec.ids.forEach(id=>{
       const q = QUESTIONS.find(x=>x.id===id);
-      if (s.answers[i] === q.answer) correct++;
-      else if (s.answers[i] != null) toggleWrong(id, true);
+      subjectTotal[q.subject]++;
+      const picked = rec.answers[id];
+      if (picked === q.answer){
+        correct++; subjectCorrect[q.subject]++;
+      } else if (picked != null){
+        toggleWrong(id, true); // 오답 자동 등록
+      }
     });
-    const total = s.ids.length;
-    const score = Math.round(correct/total*100);
-    const pass = score >= 60;
+    rec.score = Math.round(correct/60*100);
+    rec.passed = rec.score >= 60;
+    rec.correct = correct;
+    rec.subjectCorrect = subjectCorrect;
+    rec.subjectTotal = subjectTotal;
+    rec.finished = true;
+    rec.finishedAt = Date.now();
+    rec.autoSubmitted = !!auto;
+    saveState();
+    if (timerHandle){ clearInterval(timerHandle); timerHandle=null; }
+    navigate({name:'result', round});
+  }
+
+  function renderResult(round){
+    const rec = state.rounds[round];
+    if (!rec || !rec.finished){ navigate({name:'exam', round}); return; }
 
     $app.innerHTML = `
       <section class="fade-in">
+        <button id="back-home-r" class="text-sm text-brand-600 mb-3">← 대시보드</button>
+
+        <!-- 결과 카드 -->
         <div class="bg-white rounded-2xl border border-slate-200 p-6 shadow-sm text-center">
-          <div class="text-sm text-slate-500">${s.mode==='exam'?'모의고사 결과':'학습 결과'}</div>
-          <div class="text-5xl font-extrabold mt-2 ${pass?'text-emerald-600':'text-rose-600'}">${score}점</div>
-          <div class="text-sm mt-1 ${pass?'text-emerald-700':'text-rose-700'} font-semibold">
-            ${pass?'🎉 합격선 통과 (60점 이상)':'아쉽습니다. 60점 미만'}
+          <div class="text-xs text-slate-500">제 ${round} 회 모의고사 결과</div>
+          <div class="text-6xl font-extrabold mt-2 ${rec.passed?'text-emerald-600':'text-rose-600'}">${rec.score}<span class="text-2xl">점</span></div>
+          <div class="text-sm mt-1 font-semibold ${rec.passed?'text-emerald-700':'text-rose-700'}">
+            ${rec.passed?'🎉 합격 (60점 이상)':'아쉽습니다. 60점 미만'}
           </div>
-          <div class="mt-3 text-slate-600 text-sm">
-            정답 <b class="text-slate-900">${correct}</b> / 오답 <b class="text-slate-900">${total-correct}</b> / 총 ${total}문항
+          <div class="mt-2 text-slate-600 text-sm">
+            정답 <b class="text-slate-900">${rec.correct}</b> / 60문항
+            ${rec.autoSubmitted ? '<span class="ml-2 text-[10px] text-amber-600">(시간초과 자동제출)</span>':''}
           </div>
         </div>
 
-        <div class="grid grid-cols-2 gap-3 mt-4">
-          <button id="btn-review" class="py-3 rounded-xl bg-slate-800 text-white font-bold">오답 다시보기</button>
-          <button id="btn-home2" class="py-3 rounded-xl bg-brand-600 text-white font-bold">대시보드</button>
+        <!-- 과목별 -->
+        <div class="grid grid-cols-3 gap-3 mt-4">
+          ${[1,2,3].map(s=>{
+            const c = rec.subjectCorrect[s], t = rec.subjectTotal[s];
+            const pct = Math.round(c/t*100);
+            return `
+              <div class="bg-white rounded-xl border border-slate-200 p-3 text-center">
+                <div class="text-[11px] text-slate-500">${subjectShort[s]}</div>
+                <div class="text-xl font-extrabold text-slate-900 mt-1">${c}<span class="text-xs text-slate-400">/${t}</span></div>
+                <div class="mt-1.5 w-full h-1.5 rounded-full progress-track overflow-hidden">
+                  <div class="h-full progress-bar" style="width:${pct}%"></div>
+                </div>
+              </div>`;
+          }).join('')}
         </div>
+
+        <!-- 액션 -->
+        <div class="grid grid-cols-3 gap-2 mt-4">
+          <button id="r-review"  class="py-3 rounded-xl bg-slate-800 text-white font-bold">전체 해설</button>
+          <button id="r-wrong"   class="py-3 rounded-xl bg-amber-500 text-white font-bold">오답만 보기</button>
+          <button id="r-retry"   class="py-3 rounded-xl bg-brand-600 text-white font-bold">다시 응시</button>
+        </div>
+
+        <!-- 문항별 결과 패널 -->
+        <div id="review-panel" class="mt-5"></div>
       </section>
     `;
-    document.getElementById('btn-review').onclick = ()=>navigate({name:'wrong'});
-    document.getElementById('btn-home2').onclick  = ()=>navigate({name:'home'});
+
+    document.getElementById('back-home-r').onclick = ()=>navigate({name:'home'});
+    document.getElementById('r-retry').onclick = ()=>{
+      if (!confirm(`제 ${round} 회 모의고사를 초기화하고 다시 응시할까요?`)) return;
+      delete state.rounds[round];
+      saveState();
+      navigate({name:'exam', round});
+    };
+    document.getElementById('r-review').onclick = ()=>renderReviewPanel(round, 'all');
+    document.getElementById('r-wrong').onclick  = ()=>renderReviewPanel(round, 'wrong');
+  }
+
+  function renderReviewPanel(round, mode){
+    const rec = state.rounds[round];
+    const panel = document.getElementById('review-panel');
+    const items = rec.ids.map(id=>{
+      const q = QUESTIONS.find(x=>x.id===id);
+      const picked = rec.answers[id];
+      const ok = picked === q.answer;
+      return { q, picked, ok };
+    }).filter(x => mode==='all' ? true : !x.ok);
+
+    panel.innerHTML = `
+      <div class="text-sm font-bold text-slate-700 mb-2">${mode==='all'?'전체 해설':'오답만'} (${items.length}문항)</div>
+      ${ items.length===0 ? `<div class="bg-white rounded-xl border border-slate-200 p-6 text-center text-slate-500">모두 정답입니다! 👏</div>` :
+      items.map((it,idx)=>{
+        const q = it.q;
+        return `
+          <details class="bg-white rounded-xl border border-slate-200 p-4 mb-2" ${mode==='wrong'?'':''}>
+            <summary class="flex items-center justify-between gap-2">
+              <div class="flex items-center gap-2 flex-1 min-w-0">
+                <span class="flex-shrink-0 text-[10px] font-bold ${it.ok?'bg-emerald-100 text-emerald-700':'bg-rose-100 text-rose-700'} px-1.5 py-0.5 rounded">${it.ok?'O':'X'}</span>
+                <span class="text-[11px] text-slate-500 flex-shrink-0">${subjectShort[q.subject]}</span>
+                <span class="text-sm text-slate-800 truncate">${escapeHtml(q.question)}</span>
+              </div>
+              <svg class="acc-arrow w-4 h-4 text-slate-400" viewBox="0 0 24 24" fill="currentColor"><path d="M7 10l5 5 5-5z"/></svg>
+            </summary>
+            <div class="mt-3 pt-3 border-t border-slate-100 space-y-2">
+              ${q.options.map((opt,i)=>{
+                const n=i+1;
+                let cls='border-slate-200';
+                if (n===q.answer) cls='border-emerald-400 bg-emerald-50';
+                else if (n===it.picked) cls='border-rose-400 bg-rose-50';
+                return `<div class="flex items-start gap-2 p-2 rounded border ${cls}">
+                  <span class="w-6 h-6 rounded-full bg-slate-100 text-slate-700 grid place-items-center text-xs font-bold flex-shrink-0">${n}</span>
+                  <span class="text-sm">${escapeHtml(opt)}</span>
+                </div>`;
+              }).join('')}
+              <div class="text-sm bg-sky-50 border border-sky-200 rounded p-3 mt-2">
+                <b class="text-sky-700">해설.</b> ${escapeHtml(q.explanation)}
+              </div>
+              <button data-wq="${q.id}" class="text-xs text-amber-700 font-semibold hover:underline">
+                ${state.wrongIds.includes(q.id)?'★ 오답노트에서 제거':'☆ 오답노트에 추가'}
+              </button>
+            </div>
+          </details>`;
+      }).join('')}
+    `;
+    panel.querySelectorAll('[data-wq]').forEach(b=>{
+      b.onclick = ()=>{ toggleWrong(Number(b.dataset.wq)); renderReviewPanel(round, mode); updateWrongBadge(); };
+    });
   }
 
   /* ============================================================
-   *  [10] 실기 시험 모드
+   *  [10] 핵심 정리 (Notes)
    * ============================================================ */
-  function renderPractical(){
-    const list = getBySubject(4);
-    const categories = ['회로도 해석','핀번호 부여','결선 주의사항','실격 사유','부품 배치도'];
-
+  function renderNotesList(){
     $app.innerHTML = `
       <section class="fade-in">
-        <button class="text-sm text-brand-600 mb-3" id="back-home2">← 대시보드</button>
-        <h2 class="text-xl font-bold mb-1">실기 시험 · 4과목 작업형</h2>
-        <p class="text-sm text-slate-500 mb-4">시퀀스 제어 회로 구동 및 제어판 배치 학습</p>
+        <button id="n-back" class="text-sm text-brand-600 mb-3">← 대시보드</button>
+        <h2 class="text-xl font-bold mb-1">📚 과목별 핵심 정리</h2>
+        <p class="text-sm text-slate-500 mb-5">시험 직전 빠르게 훑어보는 압축 노트. 빈출 공식과 암기 포인트 위주로 구성.</p>
 
-        <!-- 핵심 회로도 도면 (간이 SVG) -->
-        <div class="diagram-box p-4 mb-5">
-          <div class="text-xs text-brand-300 font-semibold mb-2">핵심 회로 · 자기유지 회로 (Self-holding)</div>
-          <svg viewBox="0 0 360 160" class="w-full h-40">
-            <!-- 전원선 -->
-            <line x1="20"  y1="20"  x2="340" y2="20"  stroke="#38bdf8" stroke-width="2"/>
-            <line x1="20"  y1="140" x2="340" y2="140" stroke="#38bdf8" stroke-width="2"/>
-            <text x="22" y="14" fill="#94a3b8" font-size="10">L1</text>
-            <text x="22" y="154" fill="#94a3b8" font-size="10">L2</text>
-
-            <!-- PB1 (정지) b접점 -->
-            <line x1="80" y1="20" x2="80" y2="55" stroke="#e2e8f0" stroke-width="2"/>
-            <line x1="74" y1="55" x2="86" y2="55" stroke="#e2e8f0" stroke-width="2"/>
-            <line x1="74" y1="65" x2="86" y2="65" stroke="#e2e8f0" stroke-width="2"/>
-            <line x1="80" y1="65" x2="80" y2="90" stroke="#e2e8f0" stroke-width="2"/>
-            <text x="92" y="62" fill="#fde68a" font-size="11">PB1(b)</text>
-
-            <!-- PB2 (기동) a접점 -->
-            <line x1="80" y1="90" x2="120" y2="90" stroke="#e2e8f0" stroke-width="2"/>
-            <line x1="120" y1="80" x2="135" y2="100" stroke="#e2e8f0" stroke-width="2"/>
-            <line x1="135" y1="90" x2="170" y2="90" stroke="#e2e8f0" stroke-width="2"/>
-            <text x="115" y="76" fill="#fde68a" font-size="11">PB2(a)</text>
-
-            <!-- MC-a 자기유지 접점 (병렬) -->
-            <line x1="80" y1="115" x2="120" y2="115" stroke="#34d399" stroke-width="2"/>
-            <line x1="120" y1="105" x2="135" y2="125" stroke="#34d399" stroke-width="2"/>
-            <line x1="135" y1="115" x2="170" y2="115" stroke="#34d399" stroke-width="2"/>
-            <line x1="80" y1="90" x2="80" y2="115" stroke="#34d399" stroke-width="2"/>
-            <line x1="170" y1="90" x2="170" y2="115" stroke="#34d399" stroke-width="2"/>
-            <text x="115" y="135" fill="#86efac" font-size="11">MC-a (자기유지)</text>
-
-            <!-- MC 코일 -->
-            <line x1="170" y1="90" x2="250" y2="90" stroke="#e2e8f0" stroke-width="2"/>
-            <circle cx="265" cy="90" r="14" stroke="#f472b6" stroke-width="2" fill="none"/>
-            <text x="259" y="94" fill="#f9a8d4" font-size="12" font-weight="bold">MC</text>
-            <line x1="279" y1="90" x2="340" y2="90" stroke="#e2e8f0" stroke-width="2"/>
-            <line x1="340" y1="20" x2="340" y2="140" stroke="#38bdf8" stroke-width="2"/>
-          </svg>
-          <div class="text-[11px] text-slate-300 mt-1">
-            PB2(기동)를 누르면 MC가 여자되고, MC-a 접점이 닫혀 PB2를 떼도 자기유지됨. PB1(정지)로 회로 차단.
-          </div>
-        </div>
-
-        <!-- 카테고리 칩 -->
-        <div class="flex flex-wrap gap-2 mb-4" id="chips">
-          <button data-cat="all" class="cat-chip px-3 py-1.5 rounded-full text-xs font-semibold bg-brand-600 text-white">전체</button>
-          ${categories.map(c=>`
-            <button data-cat="${c}" class="cat-chip px-3 py-1.5 rounded-full text-xs font-semibold bg-slate-100 text-slate-700">${c}</button>
-          `).join('')}
-        </div>
-
-        <!-- 시작 버튼 + 체크리스트 -->
-        <div class="grid grid-cols-1 sm:grid-cols-2 gap-3 mb-5">
-          <button id="btn-quiz-start" class="py-4 rounded-xl bg-amber-500 text-white font-bold shadow hover:bg-amber-600">
-            🎯 실기 퀴즈 시작 (${list.length}문항)
-          </button>
-          <button id="btn-checklist" class="py-4 rounded-xl bg-white border border-amber-300 text-amber-700 font-bold hover:bg-amber-50">
-            ✅ 실격 사유 체크리스트
-          </button>
-        </div>
-
-        <!-- 핀번호 표 -->
-        <div class="bg-white rounded-2xl border border-slate-200 p-4">
-          <div class="text-sm font-bold text-slate-800 mb-2">📌 핀 번호 부여 (8핀 릴레이 MY2N)</div>
-          <div class="grid grid-cols-4 gap-2 text-xs text-center">
-            ${[
-              ['1','COM1'],['3','a1'],['5','b1'],['7','코일+'],
-              ['4','COM2'],['2','a2'],['6','b2'],['8','코일-']
-            ].map(([p,n])=>`
-              <div class="bg-slate-50 rounded-lg p-2">
-                <div class="font-bold text-brand-700">${p}번</div>
-                <div class="text-slate-600">${n}</div>
-              </div>`).join('')}
-          </div>
-          <div class="text-[11px] text-slate-500 mt-2">※ 코일 단자는 <b>7-8</b>번. 자기유지 회로에서 a접점(3-1, 6-4)을 활용한다.</div>
+        <div class="space-y-3">
+          ${Object.entries(STUDY_NOTES).map(([key, n])=>`
+            <button data-note="${key}" class="hover-card w-full text-left rounded-2xl p-5 text-white shadow bg-gradient-to-br ${n.color}">
+              <div class="flex items-center justify-between">
+                <div>
+                  <div class="text-[11px] opacity-80">${key<='3'?'필기':'실기 참고'}</div>
+                  <div class="text-lg font-bold mt-0.5">${n.title}</div>
+                  <div class="text-xs opacity-85 mt-1">${n.topics.length}개 핵심 토픽</div>
+                </div>
+                <div class="text-2xl">→</div>
+              </div>
+            </button>`).join('')}
         </div>
       </section>
     `;
-
-    // 카테고리 필터
-    let cat = 'all';
-    const startQuiz = ()=>{
-      const filtered = cat==='all' ? list : list.filter(q=>q.category===cat);
-      if (filtered.length===0){ alert('해당 카테고리에 문제가 없습니다.'); return; }
-      const ids = shuffle(filtered).map(q=>q.id);
-      startSolveSession({ ids, mode:'study', subject:4 });
-    };
-
-    document.getElementById('back-home2').onclick = ()=>navigate({name:'home'});
-    document.getElementById('btn-quiz-start').onclick = startQuiz;
-    document.getElementById('btn-checklist').onclick = ()=>{
-      const disq = list.filter(q=>q.category==='실격 사유' || q.category==='결선 주의사항');
-      if (disq.length===0){ alert('등록된 체크리스트 문항이 없습니다.'); return; }
-      startSolveSession({ ids: disq.map(q=>q.id), mode:'study', subject:4 });
-    };
-    $app.querySelectorAll('.cat-chip').forEach(b=>{
-      b.onclick = ()=>{
-        cat = b.dataset.cat;
-        $app.querySelectorAll('.cat-chip').forEach(x=>{
-          x.classList.remove('bg-brand-600','text-white');
-          x.classList.add('bg-slate-100','text-slate-700');
-        });
-        b.classList.remove('bg-slate-100','text-slate-700');
-        b.classList.add('bg-brand-600','text-white');
-      };
+    document.getElementById('n-back').onclick = ()=>navigate({name:'home'});
+    $app.querySelectorAll('[data-note]').forEach(b=>{
+      b.onclick = ()=>navigate({name:'note', subject:b.dataset.note});
     });
+  }
+
+  function renderNoteDetail(key){
+    const n = STUDY_NOTES[key];
+    if (!n){ navigate({name:'notes'}); return; }
+    $app.innerHTML = `
+      <section class="fade-in">
+        <button id="nd-back" class="text-sm text-brand-600 mb-3">← 핵심정리 목록</button>
+        <div class="rounded-2xl p-5 text-white bg-gradient-to-br ${n.color} mb-4 shadow">
+          <div class="text-[11px] opacity-80">학습노트</div>
+          <h2 class="text-xl font-bold">${n.title}</h2>
+        </div>
+
+        <div class="space-y-2">
+          ${n.topics.map((t,i)=>`
+            <details class="bg-white rounded-xl border border-slate-200 p-4" ${i===0?'open':''}>
+              <summary class="flex items-center justify-between">
+                <div class="flex items-center gap-2">
+                  <span class="w-6 h-6 rounded bg-brand-100 text-brand-700 grid place-items-center text-xs font-bold">${i+1}</span>
+                  <span class="font-bold text-slate-800">${t.h}</span>
+                </div>
+                <svg class="acc-arrow w-4 h-4 text-slate-400" viewBox="0 0 24 24" fill="currentColor"><path d="M7 10l5 5 5-5z"/></svg>
+              </summary>
+              <div class="mt-3 pt-3 border-t border-slate-100 text-sm text-slate-700 leading-relaxed space-y-2">
+                ${t.body}
+              </div>
+            </details>`).join('')}
+        </div>
+      </section>
+    `;
+    document.getElementById('nd-back').onclick = ()=>navigate({name:'notes'});
   }
 
   /* ============================================================
    *  [11] 오답 노트
    * ============================================================ */
   function renderWrongNote(){
-    const items = state.wrongIds
-      .map(id => QUESTIONS.find(q=>q.id===id))
-      .filter(Boolean);
-
+    const items = state.wrongIds.map(id=>QUESTIONS.find(q=>q.id===id)).filter(Boolean);
     $app.innerHTML = `
       <section class="fade-in">
-        <button class="text-sm text-brand-600 mb-3" id="back-home3">← 대시보드</button>
-        <h2 class="text-xl font-bold mb-1">오답 노트</h2>
-        <p class="text-sm text-slate-500 mb-4">등록된 ${items.length}개의 문제를 복습하세요.</p>
+        <button id="w-back" class="text-sm text-brand-600 mb-3">← 대시보드</button>
+        <h2 class="text-xl font-bold mb-1">⭐ 오답 노트</h2>
+        <p class="text-sm text-slate-500 mb-4">등록된 ${items.length}개 문제를 복습하세요.</p>
 
-        ${ items.length===0 ? `
+        ${items.length===0 ? `
           <div class="bg-white rounded-2xl border border-slate-200 p-8 text-center text-slate-500">
             아직 등록된 오답이 없습니다.
           </div>` : `
-          <button id="btn-review-all"
-            class="w-full mb-4 py-3 rounded-xl bg-amber-500 text-white font-bold shadow">
-            ▶ 오답 ${items.length}개 다시 풀기
-          </button>
-          <div class="space-y-3">
+          <div class="space-y-2">
             ${items.map(q=>`
-              <div class="bg-white rounded-xl border border-slate-200 p-4">
-                <div class="flex items-start justify-between gap-2">
-                  <div class="text-[11px] font-bold text-brand-700">${subjectShort[q.subject]} · #${q.id}</div>
-                  <button data-rm="${q.id}" class="text-xs text-rose-600 hover:underline">제거</button>
+              <details class="bg-white rounded-xl border border-slate-200 p-4">
+                <summary class="flex items-center justify-between gap-2">
+                  <div class="flex-1 min-w-0">
+                    <div class="text-[11px] font-bold text-brand-700">${subjectShort[q.subject]} · #${q.id}</div>
+                    <div class="text-sm font-semibold text-slate-900 mt-0.5 truncate">${escapeHtml(q.question)}</div>
+                  </div>
+                  <button data-rm="${q.id}" class="flex-shrink-0 text-xs text-rose-600 hover:underline">제거</button>
+                </summary>
+                <div class="mt-3 pt-3 border-t border-slate-100 space-y-2">
+                  ${q.options.map((opt,i)=>{
+                    const n=i+1;
+                    const cls = n===q.answer ? 'border-emerald-400 bg-emerald-50' : 'border-slate-200';
+                    return `<div class="flex items-start gap-2 p-2 rounded border ${cls}">
+                      <span class="w-6 h-6 rounded-full bg-slate-100 text-slate-700 grid place-items-center text-xs font-bold">${n}</span>
+                      <span class="text-sm">${escapeHtml(opt)}</span>
+                    </div>`;
+                  }).join('')}
+                  <div class="text-sm bg-sky-50 border border-sky-200 rounded p-3"><b class="text-sky-700">해설.</b> ${escapeHtml(q.explanation)}</div>
                 </div>
-                <div class="text-sm font-semibold mt-1 text-slate-900">${escapeHtml(q.question)}</div>
-                <div class="text-xs text-slate-500 mt-1">정답: ${q.answer}번 · ${escapeHtml(q.options[q.answer-1])}</div>
-              </div>`).join('')}
-          </div>`
-        }
+              </details>`).join('')}
+          </div>`}
       </section>
     `;
-
-    document.getElementById('back-home3').onclick = ()=>navigate({name:'home'});
-    const ra = document.getElementById('btn-review-all');
-    if (ra) ra.onclick = ()=> startSolveSession({
-      ids: items.map(q=>q.id), mode:'study', subject: items[0].subject
-    });
+    document.getElementById('w-back').onclick = ()=>navigate({name:'home'});
     $app.querySelectorAll('[data-rm]').forEach(b=>{
-      b.onclick = ()=>{
+      b.onclick = (e)=>{
+        e.preventDefault(); e.stopPropagation();
         toggleWrong(Number(b.dataset.rm), false);
-        renderWrongNote();
-        updateWrongBadge();
+        renderWrongNote(); updateWrongBadge();
       };
     });
   }
 
   /* ============================================================
-   *  [12] 전역 이벤트
+   *  [12] 글로벌 이벤트
    * ============================================================ */
-  document.getElementById('btn-home').addEventListener('click', ()=>navigate({name:'home'}));
-  document.getElementById('btn-wrong-note').addEventListener('click', ()=>navigate({name:'wrong'}));
-  document.getElementById('btn-reset').addEventListener('click', ()=>{
-    if (!confirm('학습 기록과 오답 노트를 모두 초기화할까요?')) return;
+  document.getElementById('btn-home').onclick  = ()=>navigate({name:'home'});
+  document.getElementById('btn-notes').onclick = ()=>navigate({name:'notes'});
+  document.getElementById('btn-wrong').onclick = ()=>navigate({name:'wrong'});
+  document.getElementById('btn-reset').onclick = ()=>{
+    if (!confirm('모든 응시 기록과 오답노트를 초기화할까요?')) return;
     localStorage.removeItem(STORAGE_KEY);
     state = loadState();
     navigate({name:'home'});
-  });
+  };
+
+  // 페이지 떠날 때 진행 중 시험 저장
+  window.addEventListener('beforeunload', ()=>{ saveState(); });
 
   /* ============================================================
    *  [13] 초기 렌더
