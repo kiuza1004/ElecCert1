@@ -103,27 +103,37 @@
     }
     .q-timer.qt-warn { background:#dc2626; }
 
-    /* ===== 초읽기 오버레이 ===== */
+    /* ===== 초읽기 오버레이 (문제 가독성 확보 — 우측 하단 코너) ===== */
     #countdown-overlay {
-      position: fixed; inset: 0;
+      position: fixed;
+      right: max(16px, env(safe-area-inset-right));
+      bottom: max(20px, env(safe-area-inset-bottom));
       pointer-events: none; z-index: 60;
       display: none;
-      align-items: center; justify-content: center;
     }
-    #countdown-overlay.active { display: flex; }
+    #countdown-overlay.active { display: block; }
     #countdown-overlay .num {
-      font-size: clamp(140px, 32vw, 320px);
+      font-size: clamp(64px, 14vw, 112px);
       font-weight: 900;
-      color: rgba(220, 38, 38, .85);
-      text-shadow: 0 8px 30px rgba(220,38,38,.5), 0 0 0 4px rgba(255,255,255,.15);
+      color: rgba(220, 38, 38, .92);
+      text-shadow:
+        0 0 2px #fff,
+        0 0 8px rgba(255,255,255,.9),
+        0 6px 18px rgba(220,38,38,.45);
       font-variant-numeric: tabular-nums;
-      animation: cd-pop .9s ease-out;
+      animation: cd-pop .55s ease-out;
       line-height: 1;
+      padding: 4px 14px;
+      background: rgba(255,255,255,.55);
+      backdrop-filter: blur(4px);
+      -webkit-backdrop-filter: blur(4px);
+      border-radius: 18px;
+      border: 2px solid rgba(220,38,38,.55);
     }
     @keyframes cd-pop {
-      0%   { transform: scale(.4); opacity: 0; }
-      40%  { transform: scale(1.15); opacity: 1; }
-      100% { transform: scale(1); opacity: .95; }
+      0%   { transform: scale(.7); opacity: 0; }
+      50%  { transform: scale(1.08); opacity: 1; }
+      100% { transform: scale(1); opacity: .98; }
     }
 
     /* ===== 화면 가장자리 빨간 펄스 ===== */
@@ -392,9 +402,9 @@
     { id:3110, subject:3, question:"접지저항계로 접지저항을 측정할 때 사용하는 보조전극은?",
       options:["1개","2개","3개","필요없음"], answer:2,
       explanation:"3전극법: 접지극(E)+전류보조극(C)+전위보조극(P) → 보조전극은 2개." },
-    { id:3111, subject:3, question:"사용전압 300[V] 이하 저압 옥내배선의 절연저항 최저값은?",
-      options:["0.1[MΩ]","0.2[MΩ]","0.4[MΩ]","1.0[MΩ]"], answer:2,
-      explanation:"KEC: SELV/PELV 0.5MΩ, FELV·500V이하 1.0MΩ. (구 기준 150V이하 0.1, 300V이하 0.2, 400V초과 0.4)" },
+    { id:3111, subject:3, question:"KEC 기준, 사용전압 300[V] 이하(FELV·500V 이하) 저압 옥내배선의 절연저항 최저값은?",
+      options:["0.1[MΩ]","0.5[MΩ]","0.7[MΩ]","1.0[MΩ]"], answer:4,
+      explanation:"KEC 규정: SELV/PELV 0.5MΩ, FELV·500V 이하 1.0MΩ, 500V 초과 1.0MΩ. (구 내선규정 0.1·0.2·0.4MΩ은 폐지됨)" },
     { id:3112, subject:3, question:"차단기(CB)와 단로기(DS)의 차이로 옳은 것은?",
       options:["DS는 부하전류 차단 가능","CB는 부하전류·고장전류 차단 가능",
               "DS는 자동조작 전용","둘 다 동일 기능"], answer:2,
