@@ -95,6 +95,57 @@
       padding: 2px 8px; border-radius: 6px; border:1px solid #e2e8f0;
       display:inline-block; margin: 2px 0;
     }
+
+    /* ===== 문항 타이머 ===== */
+    .q-timer {
+      font-variant-numeric: tabular-nums;
+      background:#1e293b; color:#f1f5f9;
+    }
+    .q-timer.qt-warn { background:#dc2626; }
+
+    /* ===== 초읽기 오버레이 ===== */
+    #countdown-overlay {
+      position: fixed; inset: 0;
+      pointer-events: none; z-index: 60;
+      display: none;
+      align-items: center; justify-content: center;
+    }
+    #countdown-overlay.active { display: flex; }
+    #countdown-overlay .num {
+      font-size: clamp(140px, 32vw, 320px);
+      font-weight: 900;
+      color: rgba(220, 38, 38, .85);
+      text-shadow: 0 8px 30px rgba(220,38,38,.5), 0 0 0 4px rgba(255,255,255,.15);
+      font-variant-numeric: tabular-nums;
+      animation: cd-pop .9s ease-out;
+      line-height: 1;
+    }
+    @keyframes cd-pop {
+      0%   { transform: scale(.4); opacity: 0; }
+      40%  { transform: scale(1.15); opacity: 1; }
+      100% { transform: scale(1); opacity: .95; }
+    }
+
+    /* ===== 화면 가장자리 빨간 펄스 ===== */
+    body.countdown-active::before {
+      content:''; position: fixed; inset: 0; pointer-events:none; z-index: 50;
+      box-shadow: inset 0 0 0 6px rgba(220, 38, 38, .85),
+                  inset 0 0 60px 6px rgba(220, 38, 38, .35);
+      animation: edge-pulse 1s ease-in-out infinite;
+    }
+    @keyframes edge-pulse {
+      0%, 100% { opacity: .55; }
+      50%      { opacity: 1; }
+    }
+    /* 최후 5초 강화 */
+    body.countdown-critical::before {
+      box-shadow: inset 0 0 0 10px rgba(220, 38, 38, 1),
+                  inset 0 0 100px 10px rgba(220, 38, 38, .55);
+      animation-duration: .55s;
+    }
+    body.countdown-critical #countdown-overlay .num {
+      color: rgba(220, 38, 38, 1);
+    }
   </style>
 </head>
 
@@ -129,6 +180,11 @@
   </header>
 
   <main id="app" class="max-w-3xl mx-auto px-4 pt-5 pb-24"></main>
+
+  <!-- 초읽기 오버레이 -->
+  <div id="countdown-overlay" aria-hidden="true">
+    <div class="num" id="countdown-num">--</div>
+  </div>
 
   <footer class="max-w-3xl mx-auto px-4 pb-6 text-center text-xs text-slate-400">
     © VoltPass · 학습용 (실제 시험 문제와 다를 수 있습니다) · CBT 시뮬레이션
@@ -635,8 +691,11 @@
   }
   function render(){
     updateWrongBadge();
+    // 시험 화면 외에서는 카운트다운 효과 해제
+    if (currentView.name !== 'exam') deactivateCountdown();
     switch(currentView.name){
       case 'home':   return renderHome();
+      case 'setup':  return renderSetup(currentView.round);
       case 'exam':   return renderExam(currentView.round);
       case 'result': return renderResult(currentView.round);
       case 'notes':  return renderNotesList();
@@ -708,9 +767,9 @@
                        <div class="text-[11px] text-slate-500">결과 보기 →</div>`
                     : status==='progress'
                     ? `<div class="text-base font-bold text-slate-800">이어서 응시</div>
-                       <div class="text-[11px] text-amber-600">진행률 ${Math.round((Object.values(rec.answers||{}).filter(v=>v!=null).length)/60*100)}%</div>`
+                       <div class="text-[11px] text-amber-600">진행률 ${Math.round((Object.values(rec.answers||{}).filter(v=>v!=null).length)/60*100)}% ${rec.countdownThreshold?`· 🔥${rec.countdownThreshold}s`:''}</div>`
                     : `<div class="text-base font-bold text-slate-800">시작하기</div>
-                       <div class="text-[11px] text-slate-500">60문항 / 60분</div>` }
+                       <div class="text-[11px] text-slate-500">60문항 / 모드 선택 →</div>` }
                 </div>
               </button>`;
           }).join('')}
@@ -735,8 +794,9 @@
       btn.onclick = ()=>{
         const r = Number(btn.dataset.round);
         const rec = state.rounds[r];
-        if (rec?.finished) navigate({name:'result', round:r});
-        else navigate({name:'exam', round:r});
+        if (rec?.finished)       navigate({name:'result', round:r});
+        else if (rec)            navigate({name:'exam',   round:r}); // 이어서 응시 (설정 변경 불가)
+        else                     navigate({name:'setup',  round:r}); // 첫 응시 → 설정 모달
       };
     });
     document.getElementById('quick-notes').onclick = ()=>navigate({name:'notes'});
@@ -744,29 +804,125 @@
   }
 
   /* ============================================================
-   *  [8] CBT 시험 화면
+   *  [7-B] 회차 시작 전 모드 설정 모달
    * ============================================================ */
-  function renderExam(round){
-    // 회차 데이터 초기화
-    if (!state.rounds[round]){
+  function renderSetup(round){
+    // 이미 시작된 회차면 모달 건너뛰고 바로 응시 (설정 변경 불가 정책)
+    if (state.rounds[round]) { navigate({name:'exam', round}); return; }
+
+    $app.innerHTML = `
+      <section class="fade-in">
+        <button id="su-back" class="text-sm text-brand-600 mb-3">← 대시보드</button>
+        <div class="bg-white rounded-2xl border border-slate-200 shadow-sm p-5">
+          <div class="text-xs text-slate-500">제 ${round} 회 모의고사</div>
+          <h2 class="text-xl font-bold text-slate-900 mt-1">응시 모드 선택</h2>
+          <p class="text-sm text-slate-500 mt-1">
+            모드는 <b class="text-rose-600">응시 시작 후 변경할 수 없습니다.</b>
+          </p>
+
+          <!-- 모드 카드 -->
+          <div class="mt-4 space-y-3">
+            <label class="block cursor-pointer">
+              <input type="radio" name="mode" value="normal" class="hidden peer" checked>
+              <div class="rounded-xl border-2 border-slate-200 peer-checked:border-brand-500 peer-checked:bg-brand-50 p-4 transition">
+                <div class="flex items-center justify-between">
+                  <div class="font-bold text-slate-900">일반 모드</div>
+                  <span class="text-[10px] bg-slate-200 text-slate-700 px-2 py-0.5 rounded-full font-bold">기본</span>
+                </div>
+                <p class="text-xs text-slate-600 mt-1">전체 60분만 측정. 문항당 시간 제한 없음 · 자유 이동.</p>
+              </div>
+            </label>
+
+            <label class="block cursor-pointer">
+              <input type="radio" name="mode" value="countdown" class="hidden peer">
+              <div class="rounded-xl border-2 border-slate-200 peer-checked:border-rose-500 peer-checked:bg-rose-50 p-4 transition">
+                <div class="flex items-center justify-between">
+                  <div class="font-bold text-slate-900">🔥 초읽기 모드</div>
+                  <span class="text-[10px] bg-rose-500 text-white px-2 py-0.5 rounded-full font-bold">긴장감 ↑</span>
+                </div>
+                <p class="text-xs text-slate-600 mt-1">
+                  문항당 <b>1분</b> 배당 · 마지막 N초부터 카운트다운 + 화면 펄스 + 진동 ·
+                  <b class="text-rose-700">1분 초과 시 자동 다음 문항</b>.
+                </p>
+
+                <div id="cd-options" class="mt-3 grid grid-cols-5 gap-2">
+                  ${[10,20,30,40,50].map((v,i)=>`
+                    <label class="block cursor-pointer">
+                      <input type="radio" name="cd" value="${v}" class="hidden peer" ${i===0?'checked':''}>
+                      <div class="rounded-lg border border-slate-200 peer-checked:border-rose-500 peer-checked:bg-rose-100 peer-checked:text-rose-700 text-center py-2 text-sm font-bold text-slate-600">
+                        ${v}초
+                      </div>
+                    </label>`).join('')}
+                </div>
+                <p class="text-[11px] text-slate-500 mt-2">
+                  예) <b>10초</b> 선택 → 문항 시작 후 50초까지는 평소처럼, <b>마지막 10초부터 카운트다운</b>.
+                </p>
+              </div>
+            </label>
+          </div>
+
+          <button id="su-start" class="mt-5 w-full py-3.5 rounded-xl bg-brand-600 text-white font-bold text-lg shadow hover:bg-brand-700">
+            ▶ 응시 시작
+          </button>
+          <p class="text-[11px] text-slate-400 mt-2 text-center">시작과 동시에 60분 타이머가 동작합니다.</p>
+        </div>
+      </section>
+    `;
+
+    document.getElementById('su-back').onclick = ()=>navigate({name:'home'});
+    document.getElementById('su-start').onclick = ()=>{
+      const mode = document.querySelector('input[name="mode"]:checked').value;
+      const cd   = document.querySelector('input[name="cd"]:checked')?.value;
+      const threshold = (mode==='countdown') ? Number(cd) : null;
+
       state.rounds[round] = {
         ids: buildRound(round),
-        answers: {},  // {qid: 1~4}
-        flags: {},    // {qid: true}
+        answers: {},
+        flags: {},
         cursor: 0,
         startedAt: Date.now(),
         durationSec: 60 * 60,
+        countdownThreshold: threshold, // null = 일반 모드, 10/20/30/40/50 = 초읽기
         finished: false
       };
       saveState();
-    }
-    const rec = state.rounds[round];
+      navigate({name:'exam', round});
+    };
+  }
 
-    const elapsed = Math.floor((Date.now() - rec.startedAt)/1000);
-    let remaining = rec.durationSec - elapsed;
-    if (remaining <= 0){
+  /* ============================================================
+   *  [8] CBT 시험 화면 (전체 + 문항당 타이머 + 초읽기)
+   * ============================================================ */
+  // 문항 진입 시각 (메모리만; 새로고침/이어하기 시 그 문항 진입 시점으로 리셋)
+  let questionEnteredAt = 0;
+  let lastVibrateSec = -1;
+
+  function deactivateCountdown(){
+    document.body.classList.remove('countdown-active','countdown-critical');
+    const ov = document.getElementById('countdown-overlay');
+    if (ov) ov.classList.remove('active');
+    lastVibrateSec = -1;
+  }
+
+  function renderExam(round){
+    const rec = state.rounds[round];
+    if (!rec){ navigate({name:'setup', round}); return; }
+
+    // 전체 시간 종료 체크
+    const elapsedTotal = Math.floor((Date.now() - rec.startedAt)/1000);
+    if (rec.durationSec - elapsedTotal <= 0){
       finishExam(round, true);
       return;
+    }
+
+    const isCountdown = rec.countdownThreshold != null;
+    const QSEC = 60;          // 문항당 1분
+    const TH   = rec.countdownThreshold || 0;
+
+    function enterQuestion(){
+      questionEnteredAt = Date.now();
+      lastVibrateSec = -1;
+      deactivateCountdown();
     }
 
     function renderInner(){
@@ -775,18 +931,26 @@
       const picked = rec.answers[qid];
       const flagged = !!rec.flags[qid];
       const answeredCount = Object.values(rec.answers).filter(v=>v!=null).length;
+      const totalLeft = rec.durationSec - Math.floor((Date.now() - rec.startedAt)/1000);
 
       $app.innerHTML = `
         <section class="fade-in">
           <!-- 상단: 회차 / 타이머 -->
-          <div class="flex items-center justify-between mb-3">
-            <button id="exam-back" class="text-sm text-slate-500">← 일시 저장 후 나가기</button>
-            <div id="timer" class="timer-pill px-3 py-1.5 rounded-lg font-bold text-sm">⏱ ${fmtTime(remaining)}</div>
+          <div class="flex items-center justify-between mb-3 gap-2">
+            <button id="exam-back" class="text-sm text-slate-500 truncate">← 일시 저장 후 나가기</button>
+            <div class="flex items-center gap-2">
+              ${ isCountdown ? `<div id="q-timer" class="q-timer px-2.5 py-1.5 rounded-lg font-bold text-sm">⏳ 60s</div>` : `` }
+              <div id="timer" class="timer-pill px-3 py-1.5 rounded-lg font-bold text-sm">⏱ ${fmtTime(totalLeft)}</div>
+            </div>
           </div>
 
           <!-- 진행 -->
           <div class="flex items-center justify-between text-xs text-slate-500 mb-1">
-            <span><b class="text-brand-700">제 ${round} 회</b> · ${rec.cursor+1} / 60 · <span class="text-slate-400">${subjectShort[q.subject]}</span></span>
+            <span>
+              <b class="text-brand-700">제 ${round} 회</b> · ${rec.cursor+1} / 60
+              · <span class="text-slate-400">${subjectShort[q.subject]}</span>
+              ${ isCountdown ? `<span class="ml-1 px-1.5 py-0.5 rounded bg-rose-100 text-rose-700 text-[10px] font-bold">🔥 ${TH}s 초읽기</span>` : '' }
+            </span>
             <span>응답 ${answeredCount}/60</span>
           </div>
           <div class="w-full h-1.5 rounded-full progress-track overflow-hidden mb-4">
@@ -829,10 +993,11 @@
 
           <!-- 문항 네비게이션 (CBT 답안지) -->
           <div class="mt-5 bg-white rounded-2xl border border-slate-200 p-3">
-            <div class="text-[11px] text-slate-500 mb-2 px-1 flex items-center gap-3">
+            <div class="text-[11px] text-slate-500 mb-2 px-1 flex items-center gap-3 flex-wrap">
               <span class="flex items-center gap-1"><span class="w-3 h-3 rounded bg-slate-200"></span>미응시</span>
               <span class="flex items-center gap-1"><span class="w-3 h-3 rounded bg-blue-200"></span>응시</span>
               <span class="flex items-center gap-1"><span class="w-3 h-3 rounded bg-amber-200"></span>책갈피</span>
+              <span class="ml-auto text-slate-400">이전 문항 자유 이동 가능</span>
             </div>
             <div class="grid grid-cols-10 gap-1.5" id="nav-grid">
               ${rec.ids.map((id,idx)=>{
@@ -853,35 +1018,37 @@
         inp.addEventListener('change', e=>{
           rec.answers[qid] = Number(e.target.value);
           saveState();
-          // 네비 갱신만 부분적으로
           const cell = document.querySelector(`[data-jump="${rec.cursor}"]`);
           if (cell){ cell.classList.remove('nav-blank'); cell.classList.add(rec.flags[qid]?'nav-flagged':'nav-answered'); }
         });
       });
       document.getElementById('flag-btn').onclick = ()=>{
         rec.flags[qid] = !rec.flags[qid];
-        saveState(); renderInner();
+        saveState(); enterQuestion(); renderInner();
       };
       document.getElementById('clear-btn').onclick = ()=>{
-        delete rec.answers[qid]; saveState(); renderInner();
+        delete rec.answers[qid]; saveState();
+        // 답안 지우기는 시간 리셋 안 함 (제자리)
+        renderInner();
       };
       document.getElementById('prev-btn').onclick = ()=>{
-        if (rec.cursor>0){ rec.cursor--; saveState(); renderInner(); }
+        if (rec.cursor>0){ rec.cursor--; saveState(); enterQuestion(); renderInner(); }
       };
       document.getElementById('next-btn').onclick = ()=>{
-        if (rec.cursor < 59){ rec.cursor++; saveState(); renderInner(); }
+        if (rec.cursor < 59){ rec.cursor++; saveState(); enterQuestion(); renderInner(); }
         else { confirmSubmit(); }
       };
       document.getElementById('submit-btn').onclick = confirmSubmit;
       document.getElementById('exam-back').onclick = ()=>{
         saveState();
         if (timerHandle) clearInterval(timerHandle);
+        deactivateCountdown();
         navigate({name:'home'});
       };
       $app.querySelectorAll('[data-jump]').forEach(b=>{
-        b.onclick = ()=>{ rec.cursor = Number(b.dataset.jump); saveState(); renderInner(); };
+        b.onclick = ()=>{ rec.cursor = Number(b.dataset.jump); saveState(); enterQuestion(); renderInner(); };
       });
-      // 타이머 영역만 유지
+
       attachTimer();
     }
 
@@ -890,16 +1057,35 @@
       const msg = unanswered>0
         ? `미응시 ${unanswered}문항이 있습니다. 정말 종료할까요?`
         : `시험을 종료하고 채점할까요?`;
-      if (confirm(msg)) finishExam(round, false);
+      if (confirm(msg)) { deactivateCountdown(); finishExam(round, false); }
+    }
+
+    function autoAdvance(){
+      // 마지막 문항이면 자동 제출
+      if (rec.cursor >= 59){
+        deactivateCountdown();
+        finishExam(round, true);
+        return;
+      }
+      rec.cursor++;
+      saveState();
+      enterQuestion();
+      renderInner();
     }
 
     function attachTimer(){
-      const elTimer = document.getElementById('timer');
+      const elTimer  = document.getElementById('timer');
+      const elQTimer = document.getElementById('q-timer');
+      const ovNum    = document.getElementById('countdown-num');
+      const overlay  = document.getElementById('countdown-overlay');
+
       const tick = ()=>{
+        // 전체 시간
         const e = Math.floor((Date.now() - rec.startedAt)/1000);
         const left = rec.durationSec - e;
         if (left<=0){
           clearInterval(timerHandle); timerHandle=null;
+          deactivateCountdown();
           alert('⏰ 시험 시간이 종료되었습니다. 자동 채점합니다.');
           finishExam(round, true);
           return;
@@ -908,11 +1094,52 @@
           elTimer.textContent = `⏱ ${fmtTime(left)}`;
           if (left <= 300) elTimer.classList.add('timer-warn');
         }
+
+        // 문항당 타이머 (초읽기 모드일 때만 강제 이동)
+        const qElapsed = Math.floor((Date.now() - questionEnteredAt)/1000);
+        const qLeft = Math.max(0, QSEC - qElapsed);
+
+        if (isCountdown){
+          // 1) 표시
+          if (elQTimer){
+            elQTimer.textContent = `⏳ ${qLeft}s`;
+            elQTimer.classList.toggle('qt-warn', qLeft <= TH);
+          }
+          // 2) 카운트다운 오버레이 ON/OFF
+          if (qLeft <= TH && qLeft > 0){
+            document.body.classList.add('countdown-active');
+            if (qLeft <= 5) document.body.classList.add('countdown-critical');
+            else            document.body.classList.remove('countdown-critical');
+            if (overlay) overlay.classList.add('active');
+            if (ovNum)   ovNum.textContent = String(qLeft);
+
+            // 매초 진동 (마지막 5초는 더 강하게)
+            if (qLeft !== lastVibrateSec){
+              lastVibrateSec = qLeft;
+              try {
+                if (navigator.vibrate){
+                  navigator.vibrate(qLeft <= 5 ? [120,40,120] : 70);
+                }
+              } catch {}
+            }
+          } else {
+            deactivateCountdown();
+          }
+          // 3) 60초 도달 → 강제 이동
+          if (qElapsed >= QSEC){
+            deactivateCountdown();
+            autoAdvance();
+            return;
+          }
+        }
       };
+
       if (timerHandle) clearInterval(timerHandle);
       timerHandle = setInterval(tick, 1000);
+      tick(); // 즉시 1회
     }
 
+    enterQuestion();
     renderInner();
   }
 
@@ -945,6 +1172,7 @@
     rec.autoSubmitted = !!auto;
     saveState();
     if (timerHandle){ clearInterval(timerHandle); timerHandle=null; }
+    deactivateCountdown();
     navigate({name:'result', round});
   }
 
@@ -1181,6 +1409,7 @@
     if (!confirm('모든 응시 기록과 오답노트를 초기화할까요?')) return;
     localStorage.removeItem(STORAGE_KEY);
     state = loadState();
+    deactivateCountdown();
     navigate({name:'home'});
   };
 
