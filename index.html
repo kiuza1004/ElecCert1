@@ -1061,10 +1061,11 @@
     }
 
     function autoAdvance(){
-      // 마지막 문항이면 자동 제출
+      // 마지막 60번 문항에서는 자동 이동/제출하지 않음.
+      // 시간이 남았다면 네비게이션으로 다른 문항을 재검토할 수 있도록 머무름.
+      // 시험 종료는 (1) 사용자가 종료 버튼을 누르거나 (2) 전체 60분 만료 시에만.
       if (rec.cursor >= 59){
         deactivateCountdown();
-        finishExam(round, true);
         return;
       }
       rec.cursor++;
@@ -1100,10 +1101,15 @@
         const qLeft = Math.max(0, QSEC - qElapsed);
 
         if (isCountdown){
-          // 1) 표시
+          // 1) 표시 (60번 문항에서 1분 초과 시에는 자동 이동 없음 → 표시만 정리)
           if (elQTimer){
-            elQTimer.textContent = `⏳ ${qLeft}s`;
-            elQTimer.classList.toggle('qt-warn', qLeft <= TH);
+            if (rec.cursor >= 59 && qElapsed >= QSEC){
+              elQTimer.textContent = `⏳ --`;
+              elQTimer.classList.remove('qt-warn');
+            } else {
+              elQTimer.textContent = `⏳ ${qLeft}s`;
+              elQTimer.classList.toggle('qt-warn', qLeft <= TH);
+            }
           }
           // 2) 카운트다운 오버레이 ON/OFF
           if (qLeft <= TH && qLeft > 0){
