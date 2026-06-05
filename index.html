@@ -705,6 +705,21 @@
   function getRound(v){ return state.rounds[viewKey(v)]; }
   function delRound(v){ delete state.rounds[viewKey(v)]; saveState(); }
   function findQ(id){ return EXAM_BY_ID.get(id); }
+  // currentView에서 name 필드만 제거 — navigate({name:'...', ...view}) 스프레드 충돌 방지
+  function pureView(v){
+    if (!v) return null;
+    if (v.mode === 'diff') return {mode:'diff', level:v.level, round:v.round};
+    if (v.mode === 'year') return {mode:'year', code:v.code};
+    return null;
+  }
+  // 난이도/년도별 진행 중(미완료) 라운드 개수 — 홈 메뉴 배지용
+  function countInProgress(prefix){
+    let n = 0;
+    for (const [k, r] of Object.entries(state.rounds)){
+      if (k.startsWith(prefix) && r && !r.finished) n++;
+    }
+    return n;
+  }
 
   function viewLabel(v){
     if (v.mode === 'diff'){
@@ -806,19 +821,23 @@
    * ============================================================ */
   function renderHome(){
     const wrongN = state.wrongIds.length;
+    const ipBeg  = countInProgress('diff:beginner:');
+    const ipInt  = countInProgress('diff:intermediate:');
+    const ipAdv  = countInProgress('diff:advanced:');
+    const ipYear = countInProgress('year:');
     const MENUS = [
       { id:'menu-beginner',     target:{name:'diffHome', level:'beginner'},     icon:'🟢', title:'초급',
-        desc:'기본 개념 · 암기형',     grad:'from-emerald-500 to-emerald-700' },
+        desc:'기본 개념 · 암기형',     grad:'from-emerald-500 to-emerald-700', badge: ipBeg },
       { id:'menu-intermediate', target:{name:'diffHome', level:'intermediate'}, icon:'🟡', title:'중급',
-        desc:'응용 · 계산형',           grad:'from-amber-500 to-orange-600' },
+        desc:'응용 · 계산형',           grad:'from-amber-500 to-orange-600',    badge: ipInt },
       { id:'menu-advanced',     target:{name:'diffHome', level:'advanced'},     icon:'🔴', title:'고급',
-        desc:'기출 변형 · 심화',         grad:'from-rose-500 to-pink-600' },
+        desc:'기출 변형 · 심화',         grad:'from-rose-500 to-pink-600',      badge: ipAdv },
       { id:'menu-year',         target:{name:'yearHome'},                       icon:'📅', title:'연도별 기출',
-        desc:'2006~2016 공개기출 40회', grad:'from-sky-500 to-cyan-600' },
+        desc:'2006~2016 공개기출 40회', grad:'from-sky-500 to-cyan-600',        badge: ipYear },
       { id:'menu-notes',        target:{name:'notes'},                          icon:'📚', title:'과목별 핵심정리',
-        desc:'1·2·3과목 핵심 노트',     grad:'from-indigo-500 to-violet-600' },
+        desc:'1·2·3과목 핵심 노트',     grad:'from-indigo-500 to-violet-600',   badge: 0 },
       { id:'menu-wrong',        target:{name:'wrong'},                          icon:'⭐', title:`오답노트${wrongN?` (${wrongN})`:''}`,
-        desc:'틀린 문제만 모아 복습',   grad:'from-slate-700 to-slate-900' },
+        desc:'틀린 문제만 모아 복습',   grad:'from-slate-700 to-slate-900',     badge: 0 },
     ];
 
     $app.innerHTML = `
@@ -830,7 +849,11 @@
 
         <div class="grid grid-cols-2 gap-3">
           ${MENUS.map(m=>`
-            <button id="${m.id}" class="hover-card p-5 rounded-2xl bg-gradient-to-br ${m.grad} text-white text-left shadow min-h-[120px] flex flex-col justify-between">
+            <button id="${m.id}" class="relative hover-card p-5 rounded-2xl bg-gradient-to-br ${m.grad} text-white text-left shadow min-h-[120px] flex flex-col justify-between">
+              ${m.badge ? `<span class="absolute top-2 right-2 inline-flex items-center gap-1 text-[10px] bg-white/25 backdrop-blur px-2 py-0.5 rounded-full font-bold">
+                <span class="w-1.5 h-1.5 rounded-full bg-white animate-pulse"></span>
+                응시중 ${m.badge}
+              </span>` : ''}
               <div class="text-3xl">${m.icon}</div>
               <div>
                 <div class="text-base font-bold leading-tight">${m.title}</div>
@@ -983,8 +1006,9 @@
   /* ============================================================
    *  [7-B] 회차 시작 전 모드 설정 모달
    * ============================================================ */
-  function renderSetup(view){
-    if (!view || !view.mode){ navigate({name:'home'}); return; }
+  function renderSetup(input){
+    const view = pureView(input);
+    if (!view){ navigate({name:'home'}); return; }
     // 이미 시작된 회차면 모달 건너뛰고 바로 응시 (설정 변경 불가 정책)
     if (getRound(view)) { navigate({name:'exam', ...view}); return; }
 
@@ -1090,8 +1114,9 @@
     lastVibrateSec = -1;
   }
 
-  function renderExam(view){
-    if (!view || !view.mode){ navigate({name:'home'}); return; }
+  function renderExam(input){
+    const view = pureView(input);
+    if (!view){ navigate({name:'home'}); return; }
     const rec = getRound(view);
     if (!rec){ navigate({name:'setup', ...view}); return; }
 
@@ -1346,7 +1371,9 @@
   /* ============================================================
    *  [9] 채점 및 결과
    * ============================================================ */
-  function finishExam(view, auto){
+  function finishExam(input, auto){
+    const view = pureView(input);
+    if (!view) { navigate({name:'home'}); return; }
     const rec = getRound(view);
     if (!rec || rec.finished) { navigate({name:'result', ...view}); return; }
     let correct = 0;
@@ -1378,8 +1405,9 @@
     navigate({name:'result', ...view});
   }
 
-  function renderResult(view){
-    if (!view || !view.mode){ navigate({name:'home'}); return; }
+  function renderResult(input){
+    const view = pureView(input);
+    if (!view){ navigate({name:'home'}); return; }
     const rec = getRound(view);
     if (!rec || !rec.finished){ navigate({name:'exam', ...view}); return; }
     const total = rec.ids.length;
